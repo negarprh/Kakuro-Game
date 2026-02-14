@@ -1,9 +1,3 @@
-Good. Since it actually runs now, your README should reflect **the real Windows setup**, the `python -m flask` safer command, and how the session works.
-
-Here’s a cleaner, more professional version you can replace yours with 👇
-
----
-
 # Kakuro Game – Iteration 1 (MVP)
 
 A local web application scaffold for a Kakuro puzzle game built with:
