@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Log In{% endblock %}
+{% block content %}
+<section class="panel narrow">
+    <h2>Log In</h2>
+    <form method="post" class="form-grid">
+        <label>Username or Email
+            <input type="text" name="identifier" required value="{{ identifier or '' }}">
+        </label>
+        <label>Password
+            <input type="password" name="password" required>
+        </label>
+        <button type="submit">Log In</button>
+    </form>
+    <p><a href="{{ url_for('auth.signup') }}">Need an account? Sign up.</a></p>
+</section>
+{% endblock %}

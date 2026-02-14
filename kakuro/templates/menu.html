@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Main Menu{% endblock %}
+{% block content %}
+<section class="panel">
+    <h2>Main Menu</h2>
+    <div class="actions-vertical">
+        <a class="button" href="{{ url_for('game.difficulty') }}">Start New Game</a>
+        <a class="button" href="{{ url_for('game.leaderboard') }}">Leaderboard (Placeholder)</a>
+        <span class="button disabled">Settings (Placeholder)</span>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Kakuro MVP{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<header class="site-header">
+    <nav class="navbar">
+        {% if user_mode %}
+            <a class="brand" href="{{ url_for('game.menu') }}">Kakuro</a>
+            <a href="{{ url_for('game.menu') }}">Dashboard</a>
+            <a href="{{ url_for('game.leaderboard') }}">Leaderboard</a>
+        {% else %}
+            <a class="brand" href="{{ url_for('main.welcome') }}">Kakuro</a>
+            <a href="{{ url_for('auth.signup') }}">Sign Up</a>
+            <a href="{{ url_for('auth.login') }}">Log In</a>
+        {% endif %}
+        <div class="spacer"></div>
+        {% if current_user %}
+            <span class="pill">User: {{ current_user.username }}</span>
+            <form method="post" action="{{ url_for('auth.logout') }}">
+                <button type="submit" class="btn-link">Log Out</button>
+            </form>
+        {% elif user_mode == 'guest' %}
+            <span class="pill">Guest Mode</span>
+            <form method="post" action="{{ url_for('auth.logout') }}">
+                <button type="submit" class="btn-link">Exit Guest</button>
+            </form>
+        {% endif %}
+    </nav>
+</header>
+
+<main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="flash-list">
+                {% for category, message in messages %}
+                    <li class="flash {{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</main>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

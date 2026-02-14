@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Game - {{ difficulty|capitalize }}{% endblock %}
+{% block content %}
+<section class="panel game-shell">
+    <div class="game-header">
+        <h2>Kakuro - {{ difficulty|capitalize }}</h2>
+        <p>Tip: Use arrows to move, type a digit, and press Backspace to clear.</p>
+    </div>
+    <form method="post" action="{{ url_for('game.submit') }}">
+        <div class="board-wrap">
+            <table class="kakuro-grid difficulty-{{ difficulty }}">
+                <tbody>
+                {% for row in board %}
+                    {% set r = loop.index0 %}
+                    <tr>
+                        {% for cell in row %}
+                            {% set c = loop.index0 %}
+                            {% if cell.type == 'BLOCK' %}
+                                <td class="block"></td>
+                            {% elif cell.type == 'CLUE' %}
+                                <td class="clue">
+                                    <div class="diag"></div>
+                                    <span class="down hint-number">{{ cell.down_sum if cell.down_sum is not none else '' }}</span>
+                                    <span class="across hint-number">{{ cell.across_sum if cell.across_sum is not none else '' }}</span>
+                                </td>
+                            {% else %}
+                                {% set key = r ~ '-' ~ c %}
+                                <td class="play play-cell {% if key in error_keys %}server-error{% endif %}" data-row="{{ r }}" data-col="{{ c }}">
+                                    <input
+                                        type="text"
+                                        inputmode="numeric"
+                                        pattern="[1-9]"
+                                        maxlength="1"
+                                        class="cell-input"
+                                        name="cell_{{ r }}_{{ c }}"
+                                        data-row="{{ r }}"
+                                        data-col="{{ c }}"
+                                        value="{{ cell.value }}"
+                                        aria-label="Row {{ r + 1 }} Column {{ c + 1 }}"
+                                    >
+                                </td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="actions-row">
+            <button type="submit">Check / Submit</button>
+            <a class="button" href="{{ url_for('game.difficulty') }}">New Game</a>
+        </div>
+    </form>
+
+    {% if errors %}
+        <div class="error-box">
+            <h3>Validation Feedback (Cell Locations Included)</h3>
+            <ul>
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/game.js') }}"></script>
+{% endblock %}

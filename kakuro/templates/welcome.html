@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Welcome - Kakuro{% endblock %}
+{% block content %}
+<section class="panel">
+    <h1>Kakuro Game (Iteration 1)</h1>
+    <p>Play as guest or create an account.</p>
+
+    <div class="actions-vertical">
+        <form method="post" action="{{ url_for('main.continue_guest') }}">
+            <button type="submit">Continue as Guest</button>
+        </form>
+        <a class="button" href="{{ url_for('auth.signup') }}">Sign Up</a>
+        <a class="button" href="{{ url_for('auth.login') }}">Log In</a>
+    </div>
+</section>
+{% endblock %}
