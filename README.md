@@ -1,4 +1,4 @@
-# Kakuro Game – Iteration 1 (MVP)
+# Kakuro Game
 
 A local web application scaffold for a Kakuro puzzle game built with:
 
