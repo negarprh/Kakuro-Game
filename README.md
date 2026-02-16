@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Kakuro Game - Iteration 1
 
 Flask + HTML/CSS + SQLite implementation aligned to the Iteration-1 UML/use-case scope:
@@ -13,7 +12,6 @@ Flask + HTML/CSS + SQLite implementation aligned to the Iteration-1 UML/use-case
 ## Tech Stack
 =======
 # Kakuro Game
->>>>>>> 2b61fd94575748beca3f2a46a1b310f7a3dcdc11
 
 - Python 3
 - Flask
