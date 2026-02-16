@@ -3,37 +3,40 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Kakuro MVP{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>{% block title %}Kakuro{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-<header class="site-header">
-    <nav class="navbar">
-        {% if user_mode %}
-            <a class="brand" href="{{ url_for('game.menu') }}">Kakuro</a>
-            <a href="{{ url_for('game.menu') }}">Dashboard</a>
-            <a href="{{ url_for('game.leaderboard') }}">Leaderboard</a>
-        {% else %}
-            <a class="brand" href="{{ url_for('main.welcome') }}">Kakuro</a>
-            <a href="{{ url_for('auth.signup') }}">Sign Up</a>
-            <a href="{{ url_for('auth.login') }}">Log In</a>
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="logo" href="{{ url_for('menu') if is_logged_in or is_guest else url_for('welcome') }}">Kakuro</a>
+
+        {% if is_logged_in or is_guest %}
+            <nav class="topnav">
+                <a href="{{ url_for('menu') }}">Main Menu</a>
+                <a href="{{ url_for('open_new_game_page') }}">New Game</a>
+            </nav>
         {% endif %}
+
         <div class="spacer"></div>
-        {% if current_user %}
-            <span class="pill">User: {{ current_user.username }}</span>
-            <form method="post" action="{{ url_for('auth.logout') }}">
-                <button type="submit" class="btn-link">Log Out</button>
-            </form>
-        {% elif user_mode == 'guest' %}
-            <span class="pill">Guest Mode</span>
-            <form method="post" action="{{ url_for('auth.logout') }}">
-                <button type="submit" class="btn-link">Exit Guest</button>
-            </form>
-        {% endif %}
-    </nav>
+
+        <div class="account-bar">
+            {% if is_logged_in %}
+                <span class="user-chip">{{ current_username }}</span>
+                <form method="post" action="{{ url_for('logout') }}">
+                    <button type="submit" class="btn small danger">Logout</button>
+                </form>
+            {% elif is_guest %}
+                <span class="user-chip guest">Guest</span>
+                <form method="post" action="{{ url_for('logout') }}">
+                    <button type="submit" class="btn small">Exit Guest</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
 </header>
 
-<main class="container">
+<main class="page">
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <ul class="flash-list">

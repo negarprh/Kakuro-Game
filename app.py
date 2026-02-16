@@ -1,4 +1,4 @@
-from kakuro import create_app
+from kakuro.app import create_app
 
 app = create_app()
 

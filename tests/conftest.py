@@ -2,35 +2,27 @@ from pathlib import Path
 
 import pytest
 
-from kakuro import create_app
-from kakuro.extensions import db
+from kakuro.app import create_app
+from kakuro.models.user import init_db
 
 
 @pytest.fixture()
 def app(tmp_path):
-    db_path = tmp_path / "test.db"
-    session_dir = tmp_path / "sessions"
-    Path(session_dir).mkdir(parents=True, exist_ok=True)
+    db_path = tmp_path / "test_kakuro.sqlite"
+    schema_path = Path("kakuro/db/schema.sql").resolve()
 
     app = create_app(
         {
             "TESTING": True,
-            "SQLALCHEMY_DATABASE_URI": f"sqlite:///{db_path}",
-            "SESSION_TYPE": "filesystem",
-            "SESSION_FILE_DIR": str(session_dir),
             "SECRET_KEY": "test-secret",
+            "DB_PATH": db_path,
+            "SCHEMA_PATH": schema_path,
         }
     )
 
-    with app.app_context():
-        db.drop_all()
-        db.create_all()
+    init_db(db_path=db_path, schema_path=schema_path)
 
     yield app
-
-    with app.app_context():
-        db.session.remove()
-        db.drop_all()
 
 
 @pytest.fixture()

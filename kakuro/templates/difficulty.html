@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Select Difficulty{% endblock %}
+{% block title %}Choose Difficulty | Kakuro{% endblock %}
 {% block content %}
-<section class="panel narrow">
+<section class="card card-centered menu-grid">
     <h2>Select Difficulty</h2>
-    <form method="post" action="{{ url_for('game.start_new_game') }}" class="form-grid">
-        <label><input type="radio" name="difficulty" value="easy" checked> Easy (4x4)</label>
-        <label><input type="radio" name="difficulty" value="medium"> Medium (7x7)</label>
-        <label><input type="radio" name="difficulty" value="hard"> Hard (10x10)</label>
-        <button type="submit">Start Game</button>
+    <form method="post" action="{{ url_for('start_new_game') }}" class="form-grid">
+        <label class="difficulty-option"><input type="radio" name="difficulty" value="easy" checked> Easy (5x5)</label>
+        <label class="difficulty-option"><input type="radio" name="difficulty" value="medium"> Medium (8x9)</label>
+        <label class="difficulty-option"><input type="radio" name="difficulty" value="hard"> Hard (13x13)</label>
+        <button class="btn" type="submit">Launch Game</button>
     </form>
 </section>
 {% endblock %}

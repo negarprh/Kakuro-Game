@@ -1,68 +1,77 @@
 {% extends "base.html" %}
-{% block title %}Game - {{ difficulty|capitalize }}{% endblock %}
+{% block title %}Game | Kakuro{% endblock %}
 {% block content %}
-<section class="panel game-shell">
+<section class="card game-card">
     <div class="game-header">
-        <h2>Kakuro - {{ difficulty|capitalize }}</h2>
-        <p>Tip: Use arrows to move, type a digit, and press Backspace to clear.</p>
+        <h2>Kakuro - {{ game_session.difficulty|capitalize }}</h2>
+        <p class="sub">Fill cells with 1-9. Submit to validate and reveal wrong cells.</p>
     </div>
-    <form method="post" action="{{ url_for('game.submit') }}">
-        <div class="board-wrap">
-            <table class="kakuro-grid difficulty-{{ difficulty }}">
-                <tbody>
-                {% for row in board %}
-                    {% set r = loop.index0 %}
-                    <tr>
-                        {% for cell in row %}
-                            {% set c = loop.index0 %}
-                            {% if cell.type == 'BLOCK' %}
-                                <td class="block"></td>
-                            {% elif cell.type == 'CLUE' %}
-                                <td class="clue">
-                                    <div class="diag"></div>
-                                    <span class="down hint-number">{{ cell.down_sum if cell.down_sum is not none else '' }}</span>
-                                    <span class="across hint-number">{{ cell.across_sum if cell.across_sum is not none else '' }}</span>
-                                </td>
-                            {% else %}
-                                {% set key = r ~ '-' ~ c %}
-                                <td class="play play-cell {% if key in error_keys %}server-error{% endif %}" data-row="{{ r }}" data-col="{{ c }}">
-                                    <input
-                                        type="text"
-                                        inputmode="numeric"
-                                        pattern="[1-9]"
-                                        maxlength="1"
-                                        class="cell-input"
-                                        name="cell_{{ r }}_{{ c }}"
-                                        data-row="{{ r }}"
-                                        data-col="{{ c }}"
-                                        value="{{ cell.value }}"
-                                        aria-label="Row {{ r + 1 }} Column {{ c + 1 }}"
-                                    >
-                                </td>
-                            {% endif %}
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
 
-        <div class="actions-row">
-            <button type="submit">Check / Submit</button>
-            <a class="button" href="{{ url_for('game.difficulty') }}">New Game</a>
-        </div>
-    </form>
-
-    {% if errors %}
-        <div class="error-box">
-            <h3>Validation Feedback (Cell Locations Included)</h3>
-            <ul>
-                {% for error in errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        </div>
+    {% if move_error %}
+        <p class="inline-msg error">Move error: {{ move_error }}</p>
     {% endif %}
+
+    {% if game_message %}
+        <p class="inline-msg {{ 'success' if game_session.result and game_session.result.isWin else 'error' }}">{{ game_message }}</p>
+    {% endif %}
+
+    {% if wrong_cells %}
+        <p class="coords"><strong>Wrong Cell Coordinates:</strong>
+            {% for r, c in wrong_cells %}
+                ({{ r + 1 }},{{ c + 1 }}){% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+    {% endif %}
+
+    <div class="board-shell">
+        <div
+            class="kakuro-board difficulty-{{ game_session.difficulty }}"
+            style="--rows: {{ board_matrix|length }}; --cols: {{ board_matrix[0]|length if board_matrix else 0 }};"
+        >
+            {% for row in board_matrix %}
+                {% for cell in row %}
+                    {% set key = cell.row ~ '-' ~ cell.col %}
+                    {% if cell.isPlayable %}
+                        <div class="board-cell play-cell {% if key in wrong_keys %}wrong-cell{% endif %}">
+                            <input
+                                class="cell-input"
+                                type="text"
+                                maxlength="1"
+                                inputmode="numeric"
+                                pattern="[1-9]"
+                                data-row="{{ cell.row }}"
+                                data-col="{{ cell.col }}"
+                                value="{{ cell.value or '' }}"
+                                aria-label="Row {{ cell.row + 1 }}, Column {{ cell.col + 1 }}"
+                                {% if game_session.status == 'Finished' %}disabled{% endif %}
+                            >
+                        </div>
+                    {% else %}
+                        {% if cell.clueDown is none and cell.clueRight is none %}
+                            <div class="board-cell block-cell" aria-hidden="true"></div>
+                        {% else %}
+                            <div class="board-cell clue-cell" aria-label="Clue cell">
+                                <span class="clue down">{{ cell.clueDown if cell.clueDown is not none else '' }}</span>
+                                <span class="clue right">{{ cell.clueRight if cell.clueRight is not none else '' }}</span>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="actions-row">
+        {% if game_session.status != 'Finished' %}
+            <form method="post" action="{{ url_for('submit_solution_route') }}" class="submit-solution-form">
+                <button class="btn" type="submit">Check / Submit</button>
+            </form>
+        {% endif %}
+
+        <a class="btn outline" href="{{ url_for('open_new_game_page') }}">New Game</a>
+    </div>
+
+    <p class="sub small">Enter a value (1-9). Duplicate values in a run are rejected immediately.</p>
 </section>
 {% endblock %}
 

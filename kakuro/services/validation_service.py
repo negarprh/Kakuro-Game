@@ -1,151 +1,164 @@
-def _parse_value(value):
-    if isinstance(value, int):
-        return value if 1 <= value <= 9 else None
+from __future__ import annotations
 
-    if isinstance(value, str):
-        stripped = value.strip()
-        if not stripped:
-            return None
-        if stripped.isdigit():
-            number = int(stripped)
-            return number if 1 <= number <= 9 else None
+from collections import defaultdict
 
-    return None
+from ..models.domain import Board, Cell
 
 
-def apply_form_values(board, form_data):
-    for r, row in enumerate(board):
-        for c, cell in enumerate(row):
-            if cell.get("type") != "PLAY":
+def _parse_value(raw_value: str | int | None) -> int | None:
+    if raw_value is None:
+        return None
+
+    if isinstance(raw_value, int):
+        return raw_value if 1 <= raw_value <= 9 else None
+
+    raw_value = str(raw_value).strip()
+    if raw_value == "":
+        return None
+
+    if not raw_value.isdigit():
+        return None
+
+    value = int(raw_value)
+    return value if 1 <= value <= 9 else None
+
+
+def _board_matrix(board: Board) -> list[list[Cell]]:
+    return board.matrix()
+
+
+def _get_across_run(matrix: list[list[Cell]], row: int, col: int) -> tuple[list[Cell], int | None]:
+    cols = len(matrix[0])
+
+    left = col
+    while left - 1 >= 0 and matrix[row][left - 1].isPlayable:
+        left -= 1
+
+    right = col
+    while right + 1 < cols and matrix[row][right + 1].isPlayable:
+        right += 1
+
+    run = [matrix[row][cc] for cc in range(left, right + 1)]
+    clue_col = left - 1
+    clue = matrix[row][clue_col].clueRight if clue_col >= 0 else None
+
+    return run, clue
+
+
+def _get_down_run(matrix: list[list[Cell]], row: int, col: int) -> tuple[list[Cell], int | None]:
+    rows = len(matrix)
+
+    top = row
+    while top - 1 >= 0 and matrix[top - 1][col].isPlayable:
+        top -= 1
+
+    bottom = row
+    while bottom + 1 < rows and matrix[bottom + 1][col].isPlayable:
+        bottom += 1
+
+    run = [matrix[rr][col] for rr in range(top, bottom + 1)]
+    clue_row = top - 1
+    clue = matrix[clue_row][col].clueDown if clue_row >= 0 else None
+
+    return run, clue
+
+
+def validate_move(board: Board, row: int, col: int, raw_value: str | None) -> dict:
+    matrix = _board_matrix(board)
+    rows, cols = board.size
+
+    if row < 0 or col < 0 or row >= rows or col >= cols:
+        return {"ok": False, "message": "Invalid cell coordinates."}
+
+    cell = matrix[row][col]
+    if not cell.isPlayable:
+        return {"ok": False, "message": "Selected cell is not playable."}
+
+    new_value = _parse_value(raw_value)
+    if raw_value is not None and str(raw_value).strip() != "" and new_value is None:
+        return {"ok": False, "message": "Value must be empty or a digit 1-9."}
+
+    old_value = cell.value
+    cell.value = new_value
+
+    across_run, across_clue = _get_across_run(matrix, row, col)
+    down_run, down_clue = _get_down_run(matrix, row, col)
+
+    for run in (across_run, down_run):
+        seen = set()
+        for run_cell in run:
+            if run_cell.value is None:
                 continue
+            if run_cell.value in seen:
+                cell.value = old_value
+                return {"ok": False, "message": "Duplicate value in run is not allowed."}
+            seen.add(run_cell.value)
 
-            key = f"cell_{r}_{c}"
-            raw = (form_data.get(key) or "").strip()
-
-            if raw == "":
-                cell["value"] = ""
-                continue
-
-            if raw.isdigit():
-                number = int(raw)
-                cell["value"] = number if 1 <= number <= 9 else raw
-            else:
-                cell["value"] = raw
+    return {"ok": True, "message": "Move accepted.", "value": new_value}
 
 
-def extract_runs(board):
-    rows = len(board)
-    cols = len(board[0]) if rows > 0 else 0
-    runs = []
+def validate_entire_board(board: Board) -> dict:
+    matrix = _board_matrix(board)
+    rows, cols = board.size
+
+    wrong_cells: set[tuple[int, int]] = set()
 
     for r in range(rows):
         for c in range(cols):
-            cell = board[r][c]
-            if cell.get("type") != "CLUE":
+            clue_cell = matrix[r][c]
+            if clue_cell.isPlayable:
                 continue
 
-            across_sum = cell.get("across_sum")
-            if across_sum is not None:
-                run_cells = []
+            if clue_cell.clueRight is not None:
+                run = []
                 cc = c + 1
-                while cc < cols and board[r][cc].get("type") == "PLAY":
-                    run_cells.append((r, cc))
+                while cc < cols and matrix[r][cc].isPlayable:
+                    run.append(matrix[r][cc])
                     cc += 1
-                if run_cells:
-                    runs.append(
-                        {
-                            "direction": "across",
-                            "sum": across_sum,
-                            "cells": run_cells,
-                            "start": (r, c),
-                        }
-                    )
+                _mark_run_errors(run, clue_cell.clueRight, wrong_cells)
 
-            down_sum = cell.get("down_sum")
-            if down_sum is not None:
-                run_cells = []
+            if clue_cell.clueDown is not None:
+                run = []
                 rr = r + 1
-                while rr < rows and board[rr][c].get("type") == "PLAY":
-                    run_cells.append((rr, c))
+                while rr < rows and matrix[rr][c].isPlayable:
+                    run.append(matrix[rr][c])
                     rr += 1
-                if run_cells:
-                    runs.append(
-                        {
-                            "direction": "down",
-                            "sum": down_sum,
-                            "cells": run_cells,
-                            "start": (r, c),
-                        }
-                    )
+                _mark_run_errors(run, clue_cell.clueDown, wrong_cells)
 
-    return runs
+    playable_cells = [cell for row in matrix for cell in row if cell.isPlayable]
+    all_filled = all(cell.value is not None for cell in playable_cells)
+    is_solved = all_filled and not wrong_cells
 
+    ordered_wrong = sorted(wrong_cells)
+    coords_message = ", ".join(f"({r + 1},{c + 1})" for r, c in ordered_wrong)
 
-def validate_board(board):
-    errors = []
-    error_cells = set()
-    all_filled = True
-
-    for r, row in enumerate(board):
-        for c, cell in enumerate(row):
-            if cell.get("type") != "PLAY":
-                continue
-
-            raw = cell.get("value", "")
-            if raw in (None, ""):
-                all_filled = False
-                continue
-
-            parsed = _parse_value(raw)
-            if parsed is None:
-                errors.append(f"Invalid value at row {r + 1}, col {c + 1}. Use digits 1-9.")
-                error_cells.add((r, c))
-
-    for run in extract_runs(board):
-        value_positions = {}
-        run_sum = 0
-        complete = True
-
-        for r, c in run["cells"]:
-            parsed = _parse_value(board[r][c].get("value", ""))
-            if parsed is None:
-                complete = False
-                continue
-
-            value_positions.setdefault(parsed, []).append((r, c))
-            run_sum += parsed
-
-        duplicate_cells = []
-        for _, cells in value_positions.items():
-            if len(cells) > 1:
-                duplicate_cells.extend(cells)
-
-        if duplicate_cells:
-            for cell in duplicate_cells:
-                error_cells.add(cell)
-
-            cell_labels = ", ".join(f"({r + 1}, {c + 1})" for r, c in sorted(duplicate_cells))
-            errors.append(
-                "Duplicate digit in "
-                f"{run['direction']} run starting at ({run['start'][0] + 1}, {run['start'][1] + 1}) "
-                f"at cells {cell_labels}."
-            )
-
-        if complete and run_sum != run["sum"]:
-            for cell in run["cells"]:
-                error_cells.add(cell)
-            errors.append(
-                "Sum mismatch in "
-                f"{run['direction']} run starting at ({run['start'][0] + 1}, {run['start'][1] + 1}) "
-                f"(expected {run['sum']}, got {run_sum})."
-            )
-
-    is_valid = len(errors) == 0
-    is_win = is_valid and all_filled
+    if is_solved:
+        message = "Win"
+    else:
+        message = "Not solved / incorrect"
+        if coords_message:
+            message += f". Wrong cells: {coords_message}"
 
     return {
-        "is_valid": is_valid,
-        "is_win": is_win,
-        "errors": errors,
-        "error_cells": sorted(error_cells),
+        "isSolved": is_solved,
+        "wrongCells": ordered_wrong,
+        "message": message,
     }
+
+
+def _mark_run_errors(run: list[Cell], clue: int, wrong_cells: set[tuple[int, int]]) -> None:
+    value_positions: dict[int, list[tuple[int, int]]] = defaultdict(list)
+
+    for cell in run:
+        if cell.value is None:
+            continue
+        value_positions[cell.value].append((cell.row, cell.col))
+
+    for positions in value_positions.values():
+        if len(positions) > 1:
+            wrong_cells.update(positions)
+
+    if run and all(cell.value is not None for cell in run):
+        if sum(cell.value for cell in run) != clue:
+            for cell in run:
+                wrong_cells.add((cell.row, cell.col))

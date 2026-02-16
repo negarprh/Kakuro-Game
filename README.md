@@ -1,191 +1,104 @@
-Good. Since it actually runs now, your README should reflect **the real Windows setup**, the `python -m flask` safer command, and how the session works.
+# Kakuro Game - Iteration 1
 
-Here’s a cleaner, more professional version you can replace yours with 👇
+Flask + HTML/CSS + SQLite implementation aligned to the Iteration-1 UML/use-case scope:
 
----
+- Sign Up (Create Account)
+- Login
+- Start New Game (difficulty -> board generation -> game screen)
+- Play Game (enter number -> validate move -> submit/check -> wrong-cell highlight -> result)
+- Guest + Registered users can play
+- SQLite is used for **authentication only** (`users` table)
 
-# Kakuro Game – Iteration 1 (MVP)
+## Tech Stack
 
-A local web application scaffold for a Kakuro puzzle game built with:
-
-- **Backend:** Python 3 + Flask
-- **Database:** SQLite + SQLAlchemy
-- **Frontend:** Jinja templates (HTML) + CSS
-- **Architecture:** MVC-style separation (routes, services, repositories, models)
-- **Testing:** pytest
-
-Runs locally on `localhost`.
-
----
-
-## Iteration 1 Features
-
-### Authentication & Modes
-
-- Welcome page:
-  - Continue as Guest
-  - Sign Up
-  - Log In
-
-- Registered users:
-  - Unique username
-  - Unique email
-  - Password hashing using `werkzeug.security`
-
-- Guest mode:
-  - Can play normally
-  - Cannot save results
-  - No persistence
-
----
-
-### Game Flow
-
-- Main Menu:
-  - Start New Game
-  - Leaderboard (placeholder)
-  - Log Out (registered users)
-
-- Difficulty selection:
-  - Easy → `4x4`
-  - Medium → `7x7`
-  - Hard → `10x10`
-
-- Game page:
-  - Rendered Kakuro grid
-  - Digit inputs (1–9)
-  - Submit / Check button
-  - Feedback messages (invalid / win)
-
----
-
-### Validation Rules
-
-- Only digits `1–9` allowed
-- No duplicate digits in a single run
-- If a run is complete → sum must match clue
-- Win condition:
-  - All playable cells filled
-  - All runs valid
-
----
+- Python 3
+- Flask
+- Flask-Session (server-side session storage)
+- SQLite (`sqlite3`)
+- HTML/CSS + minimal JS
+- pytest
 
 ## Project Structure
 
-```
+```text
 kakuro/
-│
-├── routes/        # Flask blueprints (main, auth, game)
-├── services/      # Auth, board generation, validation logic
-├── repositories/  # Database operations
-├── models/        # SQLAlchemy models
-├── templates/     # Jinja templates
-├── static/        # CSS and assets
-│
-tests/             # pytest unit tests
-app.py             # Flask entry point
-requirements.txt
+  app.py
+  config.py
+  requirements.txt
+  /models
+    __init__.py
+    user.py
+    domain.py
+  /services
+    __init__.py
+    auth_service.py
+    game_service.py
+    board_generator.py
+    validation_service.py
+  /db
+    schema.sql
+    kakuro.sqlite   # created automatically on first run
+  /templates
+    base.html
+    welcome.html
+    signup.html
+    login.html
+    main_menu.html
+    difficulty.html
+    game.html
+  /static
+    /css
+      styles.css
+    /js
+      game.js
+tests/
+  conftest.py
+  test_auth.py
+  test_validation.py
 ```
 
----
-
-## Session Storage (Iteration 1)
-
-Game state is stored in the Flask session:
-
-- `current_board`
-- `current_solution`
-- `difficulty`
-- `user_mode`
-
-No save/load functionality in this iteration.
-
----
-
-## Setup & Run (Windows – PowerShell)
-
-### 1️⃣ Create virtual environment
+## Setup
 
 ```bash
-py -m venv venv
+python -m venv venv
 ```
 
-### 2️⃣ Activate virtual environment
+Windows PowerShell:
 
 ```bash
 .\venv\Scripts\Activate.ps1
 ```
 
-If blocked:
+Install dependencies:
 
 ```bash
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+pip install -r requirements.txt
 ```
 
----
-
-### 3️⃣ Install dependencies
+## Run
 
 ```bash
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+flask --app app run
 ```
 
----
+Open:
 
-### 4️⃣ Run the application
-
-Recommended (avoids PATH issues):
-
-```bash
-python -m flask --app app run --debug
-```
-
-Then open:
-
-```
+```text
 http://127.0.0.1:5000
 ```
 
----
-
-## Run Tests
+## Tests
 
 ```bash
-python -m pytest
+pytest
 ```
 
----
+## Notes
 
-## Optional Database Initialization
-
-Tables are auto-created at startup.
-
-You may also run:
-
-```bash
-python -m flask --app app init-db
-```
-
----
-
-## Assumptions
-
-- The board generator is a prototype for Iteration 1.
-- Boards are valid-looking but not optimized for puzzle quality.
-- Difficulty sizes are fixed (`4x4`, `7x7`, `10x10`).
-- Leaderboard is placeholder only.
-- Guest sessions are not stored in the database.
-
----
-
-## Not Implemented in Iteration 1
-
-- Pause/blur
-- Timer
-- Save/load game
-- Real leaderboard logic
-- Profile management
-- Persistent settings
-
----
+- Database is auto-initialized from `kakuro/db/schema.sql` if missing.
+- Active `GameSession`/`Board` are stored in Flask server-side session (iteration-1 scope).
+- On `Check/Submit`, incorrect boards show:
+  - visual highlight on wrong cells
+  - wrong cell coordinates list `(row,col)`
+- End-of-game action available: **New Game**.
+- No timer/pause/save-load in Iteration 1.

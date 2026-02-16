@@ -1,146 +1,113 @@
 document.addEventListener("DOMContentLoaded", () => {
     const inputs = document.querySelectorAll(".cell-input");
-    if (inputs.length === 0) {
+    if (!inputs.length) {
         return;
     }
+    const submitForm = document.querySelector(".submit-solution-form");
+    const dirtyInputs = new Set();
 
-    const inputByCoord = new Map();
-    const tdByCoord = new Map();
+    const sendMove = async (input) => {
+        const row = input.dataset.row;
+        const col = input.dataset.col;
+        const value = input.value;
 
-    const keyFor = (row, col) => `${row},${col}`;
+        const body = new URLSearchParams({ row, col, value });
 
-    inputs.forEach((input) => {
-        const row = Number(input.dataset.row);
-        const col = Number(input.dataset.col);
-        inputByCoord.set(keyFor(row, col), input);
-        tdByCoord.set(keyFor(row, col), input.closest(".play-cell"));
-    });
-
-    const clearHighlights = () => {
-        tdByCoord.forEach((td) => {
-            td.classList.remove("active-across", "active-down", "active-cell");
+        const response = await fetch("/game/enter", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-Requested-With": "XMLHttpRequest",
+            },
+            body,
         });
-    };
 
-    const highlightRun = (row, col, dr, dc, className) => {
-        let r = row - dr;
-        let c = col - dc;
-        while (inputByCoord.has(keyFor(r, c))) {
-            r -= dr;
-            c -= dc;
-        }
-
-        r += dr;
-        c += dc;
-        while (inputByCoord.has(keyFor(r, c))) {
-            const td = tdByCoord.get(keyFor(r, c));
-            if (td) {
-                td.classList.add(className);
-            }
-            r += dr;
-            c += dc;
-        }
-    };
-
-    const highlightCurrentCell = (input) => {
-        const row = Number(input.dataset.row);
-        const col = Number(input.dataset.col);
-        clearHighlights();
-        highlightRun(row, col, 0, 1, "active-across");
-        highlightRun(row, col, 1, 0, "active-down");
-        const td = tdByCoord.get(keyFor(row, col));
-        if (td) {
-            td.classList.add("active-cell");
-        }
-    };
-
-    const focusCell = (row, col) => {
-        const target = inputByCoord.get(keyFor(row, col));
-        if (target) {
-            target.focus();
-            target.select();
-        }
-    };
-
-    const rowMinCol = new Map();
-    inputByCoord.forEach((_, key) => {
-        const [row, col] = key.split(",").map(Number);
-        const existing = rowMinCol.get(row);
-        if (existing === undefined || col < existing) {
-            rowMinCol.set(row, col);
-        }
-    });
-
-    const moveToNextCell = (input) => {
-        const row = Number(input.dataset.row);
-        const col = Number(input.dataset.col);
-        const right = inputByCoord.get(keyFor(row, col + 1));
-        if (right) {
-            right.focus();
+        if (!response.ok) {
             return;
         }
 
-        const rowList = [...rowMinCol.keys()].sort((a, b) => a - b);
-        for (const rowCandidate of rowList) {
-            if (rowCandidate <= row) {
-                continue;
+        const data = await response.json();
+        const statusEl = document.querySelector(".inline-msg.error");
+
+        if (!data.ok) {
+            input.value = "";
+            if (statusEl) {
+                statusEl.textContent = `Move error: ${data.message}`;
             }
-            const firstCol = rowMinCol.get(rowCandidate);
-            const candidate = inputByCoord.get(keyFor(rowCandidate, firstCol));
-            if (candidate) {
-                candidate.focus();
-                return;
-            }
+            return false;
+        }
+
+        if (statusEl && statusEl.textContent.startsWith("Move error:")) {
+            statusEl.textContent = "";
+        }
+
+        return true;
+    };
+
+    const moveByArrow = (current, key) => {
+        const row = Number(current.dataset.row);
+        const col = Number(current.dataset.col);
+
+        let nextRow = row;
+        let nextCol = col;
+
+        if (key === "ArrowUp") nextRow -= 1;
+        if (key === "ArrowDown") nextRow += 1;
+        if (key === "ArrowLeft") nextCol -= 1;
+        if (key === "ArrowRight") nextCol += 1;
+
+        const next = document.querySelector(`.cell-input[data-row="${nextRow}"][data-col="${nextCol}"]`);
+        if (next) {
+            next.focus();
+            next.select();
         }
     };
 
+    const syncInput = async (input) => {
+        const currentValue = input.value;
+        if (!dirtyInputs.has(input) && input.dataset.syncedValue === currentValue) {
+            return true;
+        }
+
+        const ok = await sendMove(input);
+        input.dataset.syncedValue = input.value;
+        dirtyInputs.delete(input);
+        return ok;
+    };
+
     inputs.forEach((input) => {
+        input.dataset.syncedValue = input.value;
+
         input.addEventListener("input", () => {
-            const value = input.value.replace(/[^1-9]/g, "");
-            input.value = value.slice(0, 1);
-            if (input.value) {
-                moveToNextCell(input);
-            }
+            input.value = input.value.replace(/[^1-9]/g, "").slice(0, 1);
+            dirtyInputs.add(input);
         });
 
-        input.addEventListener("focus", () => {
-            highlightCurrentCell(input);
-        });
-
-        input.addEventListener("click", () => {
-            highlightCurrentCell(input);
+        input.addEventListener("change", () => {
+            void syncInput(input);
         });
 
         input.addEventListener("keydown", (event) => {
-            const row = Number(input.dataset.row);
-            const col = Number(input.dataset.col);
-
-            if (event.key === "ArrowUp") {
+            if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) {
                 event.preventDefault();
-                focusCell(row - 1, col);
-            }
-            if (event.key === "ArrowDown") {
-                event.preventDefault();
-                focusCell(row + 1, col);
-            }
-            if (event.key === "ArrowLeft") {
-                event.preventDefault();
-                focusCell(row, col - 1);
-            }
-            if (event.key === "ArrowRight") {
-                event.preventDefault();
-                focusCell(row, col + 1);
-            }
-            if (event.key === "Backspace" && input.value === "") {
-                focusCell(row, col - 1);
+                moveByArrow(input, event.key);
             }
         });
     });
 
-    const firstErrorInput = document.querySelector(".play-cell.server-error .cell-input");
-    if (firstErrorInput) {
-        firstErrorInput.focus();
-    } else {
-        inputs[0].focus();
+    if (submitForm) {
+        submitForm.addEventListener("submit", async (event) => {
+            if (submitForm.dataset.submitting === "1") {
+                return;
+            }
+
+            event.preventDefault();
+            for (const input of inputs) {
+                await syncInput(input);
+            }
+
+            submitForm.dataset.submitting = "1";
+            submitForm.submit();
+        });
     }
 });
