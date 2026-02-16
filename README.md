@@ -10,8 +10,6 @@ Flask + HTML/CSS + SQLite implementation aligned to the Iteration-1 UML/use-case
 - SQLite is used for **authentication only** (`users` table)
 
 ## Tech Stack
-=======
-# Kakuro Game
 
 - Python 3
 - Flask
