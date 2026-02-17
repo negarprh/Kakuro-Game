@@ -50,7 +50,7 @@ This document maps the current implementation to the 4 required flows using the 
   - password is hashed,
   - user is inserted in SQLite `users` table.
 
-### Sequence Diagram
+### Sequence System
 ```mermaid
 sequenceDiagram
     actor U as User
@@ -93,7 +93,7 @@ sequenceDiagram
   - authenticated user is retrieved,
   - session is created for logged-in state.
 
-### Sequence Diagram
+### Sequence System
 ```mermaid
 sequenceDiagram
     actor U as User
@@ -136,7 +136,7 @@ sequenceDiagram
   - new board is generated from selected difficulty,
   - active game is stored in Flask session.
 
-### Sequence Diagram
+### Sequence System
 ```mermaid
 sequenceDiagram
     actor U as User/Guest
@@ -182,7 +182,7 @@ sequenceDiagram
   - solved board -> status `Finished`, win result,
   - unsolved/incorrect board -> status `InProgress`, wrong cells returned for highlight.
 
-### Sequence Diagram
+### Sequence System
 ```mermaid
 sequenceDiagram
     actor U as User/Guest
