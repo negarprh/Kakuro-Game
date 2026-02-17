@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Kakuro Game - Iteration 1
 
 Flask + HTML/CSS + SQLite implementation aligned to the Iteration-1 UML/use-case scope:
@@ -11,9 +10,6 @@ Flask + HTML/CSS + SQLite implementation aligned to the Iteration-1 UML/use-case
 - SQLite is used for **authentication only** (`users` table)
 
 ## Tech Stack
-=======
-# Kakuro Game
->>>>>>> 2b61fd94575748beca3f2a46a1b310f7a3dcdc11
 
 - Python 3
 - Flask
@@ -93,8 +89,23 @@ http://127.0.0.1:5000
 
 ## Tests
 
+What we test in Iteration 1:
+- `tests/test_auth.py`: sign-up uniqueness checks, login credential checks, sign-up redirect behavior.
+- `tests/test_validation.py`: move validation rules (1-9 and duplicate protection) and submit-level board validation.
+- `tests/test_game_flow.py`: submit flow state transitions (incorrect stays `InProgress`, correct becomes `Finished` with win).
+
+Run all tests:
+
 ```bash
-pytest
+python -m pytest
+```
+
+Run a specific test file:
+
+```bash
+python -m pytest tests/test_auth.py
+python -m pytest tests/test_validation.py
+python -m pytest tests/test_game_flow.py
 ```
 
 ## Notes

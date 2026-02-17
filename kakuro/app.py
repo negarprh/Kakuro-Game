@@ -1,3 +1,8 @@
+"""
+Main Flask app for Iteration 1.
+Supports flows: Sign Up, Log In, Start New Game, Play Game.
+"""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -55,12 +60,14 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.get("/")
     def welcome():
+        # Flow support: entry page with guest/login/signup choices.
         if has_player_context():
             return redirect(url_for("menu"))
         return render_template("welcome.html")
 
     @app.post("/guest")
     def continue_as_guest():
+        # Iteration 1 scope: guest users can play without an account.
         session.clear()
         session["is_guest"] = True
         session["username"] = "Guest"
@@ -69,6 +76,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.get("/menu")
     def menu():
+        # Flow #3 entry: Start New Game begins from the main menu.
         guard = require_player_context()
         if guard:
             return guard
@@ -76,16 +84,19 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.post("/logout")
     def logout():
+        # Session cleanup for both guest and logged-in users.
         session.clear()
         flash("Logged out.", "info")
         return redirect(url_for("welcome"))
 
     @app.get("/signup")
     def open_signup_page():
+        # Diagram mapping: System Operation openSignUpPage() / SSD 1.1 displaySignUpForm().
         return render_template("signup.html")
 
     @app.post("/signup")
     def submit_signup_form():
+        # Diagram mapping: System Operation submitSignUp(username, email, password).
         ok, message = submit_signup(
             db_path,
             request.form.get("username", ""),
@@ -94,6 +105,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         )
 
         if not ok:
+            # SSD ALT path: displayError(message) and keep user on sign-up form.
             flash(message, "danger")
             return render_template(
                 "signup.html",
@@ -101,23 +113,28 @@ def create_app(test_config: dict | None = None) -> Flask:
                 email=request.form.get("email", ""),
             )
 
+        # SSD success path: displaySuccess and redirectToLogin.
         flash(message, "success")
         return redirect(url_for("open_login_page"))
 
     @app.get("/login")
     def open_login_page():
+        # Diagram mapping: System Operation openLoginPage() / SSD 1.1 displayLoginForm().
         return render_template("login.html")
 
     @app.post("/login")
     def submit_login_form():
+        # Diagram mapping: System Operation submitLogin(email, password).
         email = request.form.get("email", "")
         password = request.form.get("password", "")
 
         user = submit_login(db_path, email, password)
         if user is None:
+            # SSD ALT path: invalid credentials -> error + stay on login form.
             flash("Invalid email or password.", "danger")
             return render_template("login.html", email=email)
 
+        # Postcondition: user is marked as logged in by creating session keys.
         session.clear()
         session["user_id"] = user.userId
         session["username"] = user.username
@@ -129,6 +146,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.get("/new-game")
     def open_new_game_page():
+        # Diagram mapping: System Operation startNewGame() -> displayDifficultyOptions().
         guard = require_player_context()
         if guard:
             return guard
@@ -136,15 +154,18 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.post("/new-game")
     def start_new_game():
+        # Diagram mapping: System Operation selectDifficulty(difficulty).
         guard = require_player_context()
         if guard:
             return guard
 
         difficulty = (request.form.get("difficulty", "easy") or "easy").lower()
         if difficulty not in {"easy", "medium", "hard"}:
+            # ALT path: invalid difficulty input.
             flash("Please select a valid difficulty.", "danger")
             return redirect(url_for("open_new_game_page"))
 
+        # Postcondition: create and store a new GameSession with generated board.
         game_session = create_new_game(difficulty)
         save_game(game_session)
         clear_feedback()
@@ -153,12 +174,14 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.get("/game")
     def game_screen():
+        # Diagram mapping: SSD 1 displayGameBoard(board).
         guard = require_player_context()
         if guard:
             return guard
 
         game_session = get_game()
         if game_session is None:
+            # ALT path: no active game yet.
             flash("Start a new game first.", "warning")
             return redirect(url_for("open_new_game_page"))
 
@@ -177,6 +200,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.post("/game/enter")
     def enter_number_route():
+        # Diagram mapping: System Operation enterNumber(row, col, value).
         game_session = get_game()
         if game_session is None:
             return _move_response(False, "No active game session.", "", request)
@@ -191,6 +215,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         result = enter_number(row, col, value)
 
         if not result["ok"]:
+            # ALT path: move rejected by coordinate/value/rule validation.
             set_move_error(result["message"])
         else:
             set_move_error("")
@@ -199,14 +224,18 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.post("/game/submit")
     def submit_solution_route():
+        # Diagram mapping: System Operation submitSolution().
         result = submit_solution()
         if not result.get("ok"):
+            # ALT path: submit attempted without active session.
             flash(result["message"], "danger")
             return redirect(url_for("game_screen"))
 
         if result["isSolved"]:
+            # Success path: solved board.
             flash("Win! Puzzle solved correctly.", "success")
         else:
+            # ALT path: not solved/incorrect with wrong-cell highlight feedback.
             flash("Not solved / incorrect. Wrong cells are highlighted.", "danger")
 
         return redirect(url_for("game_screen"))

@@ -1,3 +1,8 @@
+"""
+Validation rules for move-level and board-level checks.
+Supports flow: Play Game.
+"""
+
 from __future__ import annotations
 
 from collections import defaultdict
@@ -64,6 +69,8 @@ def _get_down_run(matrix: list[list[Cell]], row: int, col: int) -> tuple[list[Ce
 
 
 def validate_move(board: Board, row: int, col: int, raw_value: str | None) -> dict:
+    # Diagram mapping: validate move during enterNumber(row, col, value).
+    # Preconditions: active board exists, target cell is editable, value is empty or 1-9.
     matrix = _board_matrix(board)
     rows, cols = board.size
 
@@ -91,13 +98,16 @@ def validate_move(board: Board, row: int, col: int, raw_value: str | None) -> di
                 continue
             if run_cell.value in seen:
                 cell.value = old_value
+                # ALT path: duplicate value inside a run is rejected immediately.
                 return {"ok": False, "message": "Duplicate value in run is not allowed."}
             seen.add(run_cell.value)
 
+    # Postcondition: cell value is updated when validation passes.
     return {"ok": True, "message": "Move accepted.", "value": new_value}
 
 
 def validate_entire_board(board: Board) -> dict:
+    # Diagram mapping: submitSolution() -> Validate Entire Board + Highlight Wrong Cells.
     matrix = _board_matrix(board)
     rows, cols = board.size
 
@@ -135,6 +145,7 @@ def validate_entire_board(board: Board) -> dict:
     if is_solved:
         message = "Win"
     else:
+        # ALT path on submit: board is incomplete/incorrect, so wrong cells are returned.
         message = "Not solved / incorrect"
         if coords_message:
             message += f". Wrong cells: {coords_message}"

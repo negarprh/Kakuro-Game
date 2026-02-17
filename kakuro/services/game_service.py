@@ -1,3 +1,8 @@
+"""
+Game session service for Iteration 1 gameplay.
+Supports flows: Start New Game and Play Game.
+"""
+
 from __future__ import annotations
 
 import uuid
@@ -15,6 +20,7 @@ MOVE_ERROR_KEY = "move_error"
 
 
 def create_new_game(difficulty: str) -> GameSession:
+    # Diagram mapping: selectDifficulty(difficulty) creates a fresh board/session.
     board = generate_board(difficulty)
     return GameSession(
         sessionId=f"gs-{uuid.uuid4().hex[:12]}",
@@ -26,6 +32,7 @@ def create_new_game(difficulty: str) -> GameSession:
 
 
 def save_game(game_session: GameSession) -> None:
+    # Postcondition: active GameSession is stored in server session state.
     flask_session[GAME_KEY] = game_session.to_dict()
 
 
@@ -34,6 +41,7 @@ def get_game() -> GameSession | None:
 
 
 def clear_feedback() -> None:
+    # Reset UI feedback for next move/check cycle.
     flask_session[WRONG_CELLS_KEY] = []
     flask_session[MESSAGE_KEY] = ""
     flask_session[MOVE_ERROR_KEY] = ""
@@ -58,6 +66,7 @@ def get_feedback() -> dict:
 
 
 def enter_number(row: int, col: int, raw_value: str) -> dict:
+    # Diagram mapping: enterNumber(row, col, value).
     game_session = get_game()
     if game_session is None:
         return {"ok": False, "message": "No active game session."}
@@ -70,21 +79,25 @@ def enter_number(row: int, col: int, raw_value: str) -> dict:
 
     result = validate_move(game_session.board, row, col, raw_value)
     if result["ok"]:
+        # Postcondition: cell update is persisted in active session.
         save_game(game_session)
         clear_feedback()
     return result
 
 
 def submit_solution() -> dict:
+    # Diagram mapping: submitSolution() with win/error branches.
     game_session = get_game()
     if game_session is None:
         return {"ok": False, "message": "No active game session."}
 
     result = validate_entire_board(game_session.board)
     if result["isSolved"]:
+        # Success path: mark game finished and store win result.
         game_session.status = "Finished"
         game_session.result = Result(resultId=f"res-{uuid.uuid4().hex[:10]}", isWin=True)
     else:
+        # ALT path: keep game in progress and return wrong-cell feedback.
         game_session.status = "InProgress"
         game_session.result = None
 
