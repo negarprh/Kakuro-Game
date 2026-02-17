@@ -59,23 +59,35 @@ tests/
 
 ## Setup
 
+Create virtual environment (both platforms):
+
 ```bash
 python -m venv venv
 ```
 
-Windows PowerShell:
+### Windows (PowerShell)
 
 ```bash
 .\venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 ```
 
-Install dependencies:
+### macOS (Terminal / zsh)
 
 ```bash
-pip install -r requirements.txt
+source venv/bin/activate
+python -m pip install -r requirements.txt
 ```
 
 ## Run
+
+### Windows (PowerShell)
+
+```bash
+flask --app app run
+```
+
+### macOS (Terminal / zsh)
 
 ```bash
 flask --app app run
@@ -96,11 +108,19 @@ What we test in Iteration 1:
 
 Run all tests:
 
+### Windows (PowerShell)
+
 ```bash
 python -m pytest
 ```
 
-Run a specific test file:
+### macOS (Terminal / zsh)
+
+```bash
+python -m pytest
+```
+
+Run a specific test file (both platforms):
 
 ```bash
 python -m pytest tests/test_auth.py
