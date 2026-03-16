@@ -1,3 +1,27 @@
-from .domain import Board, Cell, GameSession, Result, User
+from .domain import (
+    Board,
+    Cell,
+    ClueCell,
+    DifficultyLevel,
+    GameSession,
+    GuestUser,
+    PlayCell,
+    RegisteredUser,
+    Result,
+    SavedGame,
+    User,
+)
 
-__all__ = ["User", "GameSession", "Board", "Cell", "Result"]
+__all__ = [
+    "User",
+    "RegisteredUser",
+    "GuestUser",
+    "GameSession",
+    "Board",
+    "Cell",
+    "PlayCell",
+    "ClueCell",
+    "Result",
+    "SavedGame",
+    "DifficultyLevel",
+]

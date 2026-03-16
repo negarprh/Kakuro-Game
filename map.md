@@ -5,24 +5,28 @@ This document maps the current implementation to the 4 required flows using the 
 ## File Flow Map
 
 ### Flow 1: Sign Up (Create Account)
+
 - `kakuro/app.py` - `GET /signup`, `POST /signup`
 - `kakuro/services/auth_service.py` - `submit_signup(...)`
 - `kakuro/models/user.py` - `get_user_by_username(...)`, `get_user_by_email(...)`, `create_user(...)`
 - `kakuro/templates/signup.html`
 
 ### Flow 2: Log In
+
 - `kakuro/app.py` - `GET /login`, `POST /login`
 - `kakuro/services/auth_service.py` - `submit_login(...)`
 - `kakuro/models/user.py` - `get_user_by_email(...)`
 - `kakuro/templates/login.html`
 
 ### Flow 3: Start New Game
+
 - `kakuro/app.py` - `GET /new-game`, `POST /new-game`
 - `kakuro/services/game_service.py` - `create_new_game(...)`, `save_game(...)`
 - `kakuro/services/board_generator.py` - `generate_board(...)`
 - `kakuro/templates/difficulty.html`, `kakuro/templates/game.html`
 
 ### Flow 4: Play Game
+
 - `kakuro/app.py` - `GET /game`, `POST /game/enter`, `POST /game/submit`
 - `kakuro/services/game_service.py` - `enter_number(...)`, `submit_solution(...)`, `get_feedback(...)`
 - `kakuro/services/validation_service.py` - `validate_move(...)`, `validate_entire_board(...)`
@@ -34,6 +38,7 @@ This document maps the current implementation to the 4 required flows using the 
 ## Flow 1 - Sign Up (Create Account)
 
 ### Step Mapping
+
 - `openSignUpPage()` -> `GET /signup` in `kakuro/app.py`.
 - `displaySignUpForm()` -> `kakuro/templates/signup.html`.
 - `submitSignUp(username,email,password)` -> `POST /signup` in `kakuro/app.py`, then `submit_signup(...)` in `kakuro/services/auth_service.py`.
@@ -41,6 +46,7 @@ This document maps the current implementation to the 4 required flows using the 
 - Success branch -> flashes success and redirects to `GET /login`.
 
 ### Preconditions and Postconditions from Code
+
 - Preconditions checked:
   - required fields exist,
   - email format is basic-valid,
@@ -51,6 +57,7 @@ This document maps the current implementation to the 4 required flows using the 
   - user is inserted in SQLite `users` table.
 
 ### Sequence System
+
 ```mermaid
 sequenceDiagram
     actor U as User
@@ -78,6 +85,7 @@ sequenceDiagram
 ## Flow 2 - Log In
 
 ### Step Mapping
+
 - `openLoginPage()` -> `GET /login` in `kakuro/app.py`.
 - `displayLoginForm()` -> `kakuro/templates/login.html`.
 - `submitLogin(email,password)` -> `POST /login`, then `submit_login(...)` in `kakuro/services/auth_service.py`.
@@ -85,6 +93,7 @@ sequenceDiagram
 - Success branch -> session keys are set (`user_id`, `username`, `is_guest=False`) and redirect to `/menu`.
 
 ### Preconditions and Postconditions from Code
+
 - Preconditions checked:
   - email and password provided,
   - user exists for email,
@@ -94,6 +103,7 @@ sequenceDiagram
   - session is created for logged-in state.
 
 ### Sequence System
+
 ```mermaid
 sequenceDiagram
     actor U as User
@@ -122,12 +132,14 @@ sequenceDiagram
 ## Flow 3 - Start New Game
 
 ### Step Mapping
+
 - `startNewGame()` + `displayDifficultyOptions()` -> `GET /new-game` in `kakuro/app.py`.
 - `selectDifficulty(difficulty)` equivalent -> `POST /new-game` in `kakuro/app.py` (current route name).
 - Board creation -> `create_new_game(...)` -> `generate_board(difficulty)`.
 - Game launch -> redirect to `GET /game` and render `kakuro/templates/game.html`.
 
 ### Preconditions and Postconditions from Code
+
 - Preconditions checked:
   - player context exists (guest or logged-in),
   - difficulty is in `{easy, medium, hard}`.
@@ -137,6 +149,7 @@ sequenceDiagram
   - active game is stored in Flask session.
 
 ### Sequence System
+
 ```mermaid
 sequenceDiagram
     actor U as User/Guest
@@ -161,6 +174,7 @@ sequenceDiagram
 ## Flow 4 - Play Game
 
 ### Step Mapping
+
 - `displayGameBoard(board)` -> `GET /game` renders `kakuro/templates/game.html`.
 - `enterNumber(row,col,value)` equivalent -> `POST /game/enter` (AJAX from `kakuro/static/js/game.js`).
 - Move validation -> `enter_number(...)` -> `validate_move(...)`.
@@ -170,6 +184,7 @@ sequenceDiagram
 - New game option -> button/link back to `/new-game` in `kakuro/templates/game.html`.
 
 ### Preconditions and Postconditions from Code
+
 - Preconditions checked for move:
   - active game session exists,
   - target coordinates are valid,
@@ -183,6 +198,7 @@ sequenceDiagram
   - unsolved/incorrect board -> status `InProgress`, wrong cells returned for highlight.
 
 ### Sequence System
+
 ```mermaid
 sequenceDiagram
     actor U as User/Guest
@@ -227,6 +243,7 @@ sequenceDiagram
 ---
 
 ## Scope Notes from Current Code
+
 - Guest gameplay is implemented (`POST /guest`, session `is_guest=True`).
 - Basic validation is implemented (1-9 values, duplicate-in-run check, board submit check).
 - Wrong-cell highlighting on submit is implemented (`wrongCells` from validation to template/UI).
@@ -239,6 +256,7 @@ sequenceDiagram
 ## Testing Summary (What We Test and How to Run)
 
 ### What is covered
+
 - `tests/test_auth.py`
   - Sign-up uniqueness checks for username and email.
   - Login credential validation (correct and incorrect password).
@@ -252,11 +270,13 @@ sequenceDiagram
   - `POST /game/submit` marks game `Finished` and win for correct board.
 
 ### How to run
+
 ```bash
 python -m pytest
 ```
 
 Run single files if needed:
+
 ```bash
 python -m pytest tests/test_auth.py
 python -m pytest tests/test_validation.py

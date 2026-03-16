@@ -73,3 +73,16 @@ def test_submit_win_case():
     assert result["isSolved"] is True
     assert result["wrongCells"] == []
     assert result["message"] == "Win"
+
+
+def test_submit_marks_impossible_partial_run_as_wrong():
+    board = _board_3x3_for_validation()
+
+    # Across clue at row 2 is 4 for two cells. With 4 already entered in one cell,
+    # the remaining cell must be at least 1, so this run can never reach 4.
+    board.get_cell(1, 1).value = 4
+
+    result = validate_entire_board(board)
+
+    assert result["isSolved"] is False
+    assert (1, 1) in result["wrongCells"]

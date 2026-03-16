@@ -4,5 +4,8 @@
 <section class="card card-centered menu-grid">
     <h2>Main Menu</h2>
     <a class="btn large" href="{{ url_for('open_new_game_page') }}">Start New Game</a>
+    {% if is_logged_in %}
+        <a class="btn outline large" href="{{ url_for('load_game_route') }}">Load Saved Game</a>
+    {% endif %}
 </section>
 {% endblock %}

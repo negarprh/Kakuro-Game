@@ -169,7 +169,32 @@ def _mark_run_errors(run: list[Cell], clue: int, wrong_cells: set[tuple[int, int
         if len(positions) > 1:
             wrong_cells.update(positions)
 
-    if run and all(cell.value is not None for cell in run):
-        if sum(cell.value for cell in run) != clue:
-            for cell in run:
+    filled_cells = [cell for cell in run if cell.value is not None]
+    if not filled_cells:
+        return
+
+    current_sum = sum(cell.value for cell in filled_cells)
+    remaining_slots = len(run) - len(filled_cells)
+
+    if remaining_slots == 0:
+        if current_sum != clue:
+            for cell in filled_cells:
                 wrong_cells.add((cell.row, cell.col))
+        return
+
+    used_values = {cell.value for cell in filled_cells}
+    available_values = [value for value in range(1, 10) if value not in used_values]
+
+    if len(available_values) < remaining_slots:
+        for cell in filled_cells:
+            wrong_cells.add((cell.row, cell.col))
+        return
+
+    min_remaining = sum(sorted(available_values)[:remaining_slots])
+    max_remaining = sum(sorted(available_values, reverse=True)[:remaining_slots])
+    min_possible_sum = current_sum + min_remaining
+    max_possible_sum = current_sum + max_remaining
+
+    if clue < min_possible_sum or clue > max_possible_sum:
+        for cell in filled_cells:
+            wrong_cells.add((cell.row, cell.col))

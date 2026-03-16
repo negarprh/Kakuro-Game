@@ -6,8 +6,10 @@ Flask + HTML/CSS + SQLite implementation aligned to the Iteration-1 UML/use-case
 - Login
 - Start New Game (difficulty -> board generation -> game screen)
 - Play Game (enter number -> validate move -> submit/check -> wrong-cell highlight -> result)
+- Pause Game (freeze board, blur background, stop timer, resume)
+- Save Game / Load Game (registered users only)
 - Guest + Registered users can play
-- SQLite is used for **authentication only** (`users` table)
+- SQLite is used for authentication and saved game persistence (`users`, `saved_games`)
 
 ## Tech Stack
 
@@ -101,10 +103,11 @@ http://127.0.0.1:5000
 
 ## Tests
 
-What we test in Iteration 1:
+What we test:
+
 - `tests/test_auth.py`: sign-up uniqueness checks, login credential checks, sign-up redirect behavior.
 - `tests/test_validation.py`: move validation rules (1-9 and duplicate protection) and submit-level board validation.
-- `tests/test_game_flow.py`: submit flow state transitions (incorrect stays `InProgress`, correct becomes `Finished` with win).
+- `tests/test_game_flow.py`: submit flow state transitions, pause lock behavior, save/load behavior.
 
 Run all tests:
 
@@ -136,4 +139,4 @@ python -m pytest tests/test_game_flow.py
   - visual highlight on wrong cells
   - wrong cell coordinates list `(row,col)`
 - End-of-game action available: **New Game**.
-- No timer/pause/save-load in Iteration 1.
+- Guest users can pause but cannot save progress.

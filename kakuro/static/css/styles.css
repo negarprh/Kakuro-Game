@@ -335,6 +335,7 @@ input[type="password"]:focus {
 .game-card {
   max-width: 100%;
   margin: 0 auto;
+  position: relative;
 }
 
 .game-header {
@@ -343,6 +344,54 @@ input[type="password"]:focus {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--space-8);
+}
+
+.timer-line {
+  margin-top: var(--space-12);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.pause-target {
+  transition: filter 0.2s ease;
+}
+
+.pause-target.is-paused {
+  filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.pause-overlay {
+  position: absolute;
+  inset: var(--space-24);
+  background: rgba(17, 24, 39, 0.28);
+  backdrop-filter: blur(1px);
+  display: none;
+  place-items: center;
+  border-radius: 14px;
+  z-index: 15;
+}
+
+.pause-overlay.active {
+  display: grid;
+}
+
+.pause-overlay[hidden] {
+  display: none;
+}
+
+.pause-menu {
+  width: min(100%, 540px);
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: var(--space-16);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.22);
+}
+
+.pause-menu h3 {
+  margin: 0;
 }
 
 .inline-msg {
@@ -474,7 +523,15 @@ input[type="password"]:focus {
 }
 
 .play-cell.wrong-cell {
-  background: #fee2e2;
+  background: var(--playable-bg);
+}
+
+.play-cell.wrong-cell::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 2px solid rgba(180, 35, 24, 0.35);
+  pointer-events: none;
 }
 
 .cell-input {
@@ -489,6 +546,12 @@ input[type="password"]:focus {
   font-weight: 650;
   font-family: inherit;
   border-radius: 0;
+}
+
+.play-cell.wrong-cell .cell-input {
+  color: var(--danger);
+  font-weight: 750;
+  text-shadow: 0 0 10px rgba(180, 35, 24, 0.18);
 }
 
 .cell-input:focus {
@@ -514,6 +577,11 @@ input[type="number"] {
   gap: var(--space-12);
 }
 
+button[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 @media (max-width: 900px) {
   .topbar-inner {
     flex-wrap: wrap;
@@ -527,6 +595,10 @@ input[type="number"] {
 
   .card {
     padding: var(--space-16);
+  }
+
+  .pause-overlay {
+    inset: var(--space-16);
   }
 
   .kakuro-board {

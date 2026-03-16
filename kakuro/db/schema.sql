@@ -5,3 +5,15 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT NOT NULL,
     created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS saved_games (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT UNIQUE NOT NULL,
+    user_id INTEGER NOT NULL,
+    board_state TEXT NOT NULL,
+    difficulty TEXT NOT NULL,
+    elapsed_time INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL,
+    saved_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

@@ -19,7 +19,11 @@ from .services.game_service import (
     enter_number,
     get_feedback,
     get_game,
+    is_paused,
+    load_latest_saved_game,
+    save_current_game,
     save_game,
+    set_paused,
     set_move_error,
     submit_solution,
 )
@@ -72,6 +76,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         session["is_guest"] = True
         session["username"] = "Guest"
         clear_feedback()
+        set_paused(False)
         return redirect(url_for("menu"))
 
     @app.get("/menu")
@@ -140,6 +145,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         session["username"] = user.username
         session["is_guest"] = False
         clear_feedback()
+        set_paused(False)
 
         flash("Login successful.", "success")
         return redirect(url_for("menu"))
@@ -166,9 +172,10 @@ def create_app(test_config: dict | None = None) -> Flask:
             return redirect(url_for("open_new_game_page"))
 
         # Postcondition: create and store a new GameSession with generated board.
-        game_session = create_new_game(difficulty)
+        game_session = create_new_game(difficulty, session.get("user_id"))
         save_game(game_session)
         clear_feedback()
+        set_paused(False)
 
         return redirect(url_for("game_screen"))
 
@@ -196,7 +203,62 @@ def create_app(test_config: dict | None = None) -> Flask:
             wrong_cells=feedback["wrongCells"],
             game_message=feedback["message"],
             move_error=feedback["moveError"],
+            game_paused=is_paused(),
         )
+
+    @app.post("/game/pause")
+    def pause_game_route():
+        game_session = get_game()
+        if game_session is None:
+            return _move_response(False, "No active game session.", "", request)
+
+        set_paused(True)
+        return _move_response(True, "Game paused.", "", request)
+
+    @app.post("/game/resume")
+    def resume_game_route():
+        game_session = get_game()
+        if game_session is None:
+            return _move_response(False, "No active game session.", "", request)
+
+        set_paused(False)
+        return _move_response(True, "Game resumed.", "", request)
+
+    @app.post("/game/save")
+    def save_game_route():
+        game_session = get_game()
+        if game_session is None:
+            flash("No active game session.", "danger")
+            return redirect(url_for("game_screen"))
+
+        user_id = session.get("user_id")
+        if not user_id:
+            flash("Only registered users can save games.", "warning")
+            return redirect(url_for("game_screen"))
+
+        try:
+            elapsed_time = int(request.form.get("elapsed_time", game_session.elapsedTime))
+        except ValueError:
+            elapsed_time = game_session.elapsedTime
+
+        ok, message = save_current_game(db_path, user_id, elapsed_time)
+        flash(message, "success" if ok else "danger")
+        return redirect(url_for("menu" if ok else "game_screen"))
+
+    @app.get("/game/load")
+    def load_game_route():
+        guard = require_player_context()
+        if guard:
+            return guard
+
+        user_id = session.get("user_id")
+        if not user_id:
+            flash("Only registered users can load saved games.", "warning")
+            return redirect(url_for("menu"))
+
+        ok, message = load_latest_saved_game(db_path, user_id)
+        flash(message, "success" if ok else "warning")
+        return redirect(url_for("game_screen" if ok else "menu"))
 
     @app.post("/game/enter")
     def enter_number_route():

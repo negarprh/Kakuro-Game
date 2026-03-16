@@ -4,7 +4,7 @@ import random
 import uuid
 from dataclasses import dataclass
 
-from ..models.domain import Board, Cell
+from ..models.domain import Board, ClueCell, PlayCell
 
 
 DIFFICULTY_SIZES = {
@@ -44,17 +44,26 @@ def generate_board(difficulty: str) -> Board:
     config = DIFFICULTY_CONFIGS[difficulty]
     template = _build_random_template(difficulty, config)
 
-    cells = [
-        Cell(
-            row=cell["row"],
-            col=cell["col"],
-            value=None,
-            isPlayable=cell["isPlayable"],
-            clueDown=cell.get("clueDown", cell.get("downSum")),
-            clueRight=cell.get("clueRight", cell.get("rightSum")),
-        )
-        for cell in template["cells"]
-    ]
+    cells = []
+    for cell in template["cells"]:
+        if cell["isPlayable"]:
+            cells.append(
+                PlayCell(
+                    row=cell["row"],
+                    col=cell["col"],
+                    value=None,
+                )
+            )
+        else:
+            cells.append(
+                ClueCell(
+                    row=cell["row"],
+                    col=cell["col"],
+                    value=None,
+                    clueDown=cell.get("clueDown", cell.get("downSum")),
+                    clueRight=cell.get("clueRight", cell.get("rightSum")),
+                )
+            )
 
     return Board(
         boardId=f"board-{uuid.uuid4().hex[:12]}",

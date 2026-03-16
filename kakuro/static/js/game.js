@@ -1,12 +1,126 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const gameCard = document.querySelector(".game-card");
     const inputs = document.querySelectorAll(".cell-input");
-    if (!inputs.length) {
+    if (!gameCard || !inputs.length) {
         return;
     }
+
     const submitForm = document.querySelector(".submit-solution-form");
+    const pauseButton = document.querySelector("#pauseGameBtn");
+    const resumeButton = document.querySelector("#resumeGameBtn");
+    const saveGameForm = document.querySelector("#saveGameForm");
+    const elapsedDisplay = document.querySelector("#elapsed-time");
+    const elapsedInput = document.querySelector("#elapsedTimeInput");
+    const pauseOverlay = document.querySelector("#pauseOverlay");
+    const pauseTarget = document.querySelector("#pauseTarget");
+    const isFinished = gameCard.dataset.gameFinished === "1";
+    let paused = gameCard.dataset.initialPaused === "1";
+    let elapsedSeconds = Number(gameCard.dataset.initialElapsed || "0");
+    let timerId = null;
     const dirtyInputs = new Set();
 
+    const formatElapsed = (totalSeconds) => {
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    };
+
+    const renderTimer = () => {
+        if (elapsedDisplay) {
+            elapsedDisplay.textContent = formatElapsed(elapsedSeconds);
+        }
+        if (elapsedInput) {
+            elapsedInput.value = String(elapsedSeconds);
+        }
+    };
+
+    const stopTimer = () => {
+        if (timerId !== null) {
+            clearInterval(timerId);
+            timerId = null;
+        }
+    };
+
+    const startTimer = () => {
+        if (isFinished || paused || timerId !== null) {
+            return;
+        }
+        timerId = window.setInterval(() => {
+            elapsedSeconds += 1;
+            renderTimer();
+        }, 1000);
+    };
+
+    const setBoardLocked = (locked) => {
+        inputs.forEach((input) => {
+            if (!isFinished) {
+                input.disabled = locked;
+            }
+        });
+
+        if (submitForm) {
+            const submitButton = submitForm.querySelector("button[type='submit']");
+            if (submitButton) {
+                submitButton.disabled = locked;
+            }
+        }
+    };
+
+    const applyPausedState = (nextPaused) => {
+        paused = nextPaused;
+
+        if (pauseTarget) {
+            pauseTarget.classList.toggle("is-paused", paused);
+        }
+
+        if (pauseOverlay) {
+            pauseOverlay.classList.toggle("active", paused);
+            pauseOverlay.hidden = !paused;
+        }
+
+        setBoardLocked(paused);
+
+        if (paused) {
+            stopTimer();
+        } else {
+            startTimer();
+        }
+    };
+
+    const setErrorMessage = (message) => {
+        const statusEl = document.querySelector(".inline-msg.error");
+        if (!statusEl) {
+            return;
+        }
+        statusEl.textContent = message;
+    };
+
+    const sendPauseAction = async (url) => {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+            },
+        });
+
+        if (!response.ok) {
+            return false;
+        }
+
+        const data = await response.json();
+        if (!data.ok) {
+            setErrorMessage(`Move error: ${data.message}`);
+            return false;
+        }
+
+        return true;
+    };
+
     const sendMove = async (input) => {
+        if (paused) {
+            return false;
+        }
+
         const row = input.dataset.row;
         const col = input.dataset.col;
         const value = input.value;
@@ -27,19 +141,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const data = await response.json();
-        const statusEl = document.querySelector(".inline-msg.error");
 
         if (!data.ok) {
             input.value = "";
-            if (statusEl) {
-                statusEl.textContent = `Move error: ${data.message}`;
-            }
+            setErrorMessage(`Move error: ${data.message}`);
             return false;
         }
 
-        if (statusEl && statusEl.textContent.startsWith("Move error:")) {
-            statusEl.textContent = "";
-        }
+        setErrorMessage("");
 
         return true;
     };
@@ -64,6 +173,10 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const syncInput = async (input) => {
+        if (paused) {
+            return false;
+        }
+
         const currentValue = input.value;
         if (!dirtyInputs.has(input) && input.dataset.syncedValue === currentValue) {
             return true;
@@ -79,15 +192,24 @@ document.addEventListener("DOMContentLoaded", () => {
         input.dataset.syncedValue = input.value;
 
         input.addEventListener("input", () => {
+            if (paused) {
+                return;
+            }
             input.value = input.value.replace(/[^1-9]/g, "").slice(0, 1);
             dirtyInputs.add(input);
         });
 
         input.addEventListener("change", () => {
+            if (paused) {
+                return;
+            }
             void syncInput(input);
         });
 
         input.addEventListener("keydown", (event) => {
+            if (paused) {
+                return;
+            }
             if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) {
                 event.preventDefault();
                 moveByArrow(input, event.key);
@@ -95,8 +217,49 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    if (pauseButton) {
+        pauseButton.addEventListener("click", async () => {
+            if (paused || isFinished) {
+                return;
+            }
+
+            for (const input of inputs) {
+                await syncInput(input);
+            }
+
+            const ok = await sendPauseAction("/game/pause");
+            if (ok) {
+                applyPausedState(true);
+            }
+        });
+    }
+
+    if (resumeButton) {
+        resumeButton.addEventListener("click", async () => {
+            if (!paused || isFinished) {
+                return;
+            }
+
+            const ok = await sendPauseAction("/game/resume");
+            if (ok) {
+                applyPausedState(false);
+            }
+        });
+    }
+
+    if (saveGameForm) {
+        saveGameForm.addEventListener("submit", () => {
+            renderTimer();
+        });
+    }
+
     if (submitForm) {
         submitForm.addEventListener("submit", async (event) => {
+            if (paused) {
+                event.preventDefault();
+                return;
+            }
+
             if (submitForm.dataset.submitting === "1") {
                 return;
             }
@@ -109,5 +272,11 @@ document.addEventListener("DOMContentLoaded", () => {
             submitForm.dataset.submitting = "1";
             submitForm.submit();
         });
+    }
+
+    renderTimer();
+    applyPausedState(paused);
+    if (!paused) {
+        startTimer();
     }
 });
