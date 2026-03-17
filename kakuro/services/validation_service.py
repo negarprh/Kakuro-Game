@@ -69,7 +69,7 @@ def _get_down_run(matrix: list[list[Cell]], row: int, col: int) -> tuple[list[Ce
 
 
 def validate_move(board: Board, row: int, col: int, raw_value: str | None) -> dict:
-    # Diagram mapping: validate move during enterNumber(row, col, value).
+    # Flow 4A enterNumber + Flow 4C removeNumber: move-level validation.
     # Preconditions: active board exists, target cell is editable, value is empty or 1-9.
     matrix = _board_matrix(board)
     rows, cols = board.size
@@ -107,7 +107,7 @@ def validate_move(board: Board, row: int, col: int, raw_value: str | None) -> di
 
 
 def validate_entire_board(board: Board) -> dict:
-    # Diagram mapping: submitSolution() -> Validate Entire Board + Highlight Wrong Cells.
+    # Flow 4D submitBoard: validate full board + wrong-cell output.
     matrix = _board_matrix(board)
     rows, cols = board.size
 

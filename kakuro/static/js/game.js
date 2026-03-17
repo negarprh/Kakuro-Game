@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // Flow 4 (Play Game): client-side orchestration for input, pause, timer, save, submit.
     const gameCard = document.querySelector(".game-card");
     const inputs = document.querySelectorAll(".cell-input");
     if (!gameCard || !inputs.length) {
@@ -26,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const renderTimer = () => {
+        // Flow 4/4E: timer rendering and save payload sync.
         if (elapsedDisplay) {
             elapsedDisplay.textContent = formatElapsed(elapsedSeconds);
         }
@@ -67,6 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const applyPausedState = (nextPaused) => {
+        // Flow 4E pauseGame/resumeGame: blur/overlay/lock behavior while paused.
         paused = nextPaused;
 
         if (pauseTarget) {
@@ -117,6 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const sendMove = async (input) => {
+        // Flow 4A enterNumber (and Flow 4C removeNumber when value is empty): sync with /game/enter.
         if (paused) {
             return false;
         }
@@ -219,6 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (pauseButton) {
         pauseButton.addEventListener("click", async () => {
+            // Flow 4E: pauseGame.
             if (paused || isFinished) {
                 return;
             }
@@ -236,6 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (resumeButton) {
         resumeButton.addEventListener("click", async () => {
+            // Flow 4E: resumeGame.
             if (!paused || isFinished) {
                 return;
             }
@@ -249,12 +255,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (saveGameForm) {
         saveGameForm.addEventListener("submit", () => {
+            // Flow 4F saveGame: send latest elapsed time to backend.
             renderTimer();
         });
     }
 
     if (submitForm) {
         submitForm.addEventListener("submit", async (event) => {
+            // Flow 4D submitBoard: submit after syncing pending edits.
             if (paused) {
                 event.preventDefault();
                 return;

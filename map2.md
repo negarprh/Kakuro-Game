@@ -5,6 +5,7 @@ This document maps the current implementation to the Iteration 2 UML flows using
 ## File Flow Map
 
 ### Flow 1: Sign Up (Create Account)
+
 - `kakuro/app.py` - `GET /signup`, `POST /signup`
 - `kakuro/services/auth_service.py` - `submit_signup(...)`
 - `kakuro/models/user.py` - `get_user_by_username(...)`, `get_user_by_email(...)`, `create_user(...)`
@@ -13,6 +14,7 @@ This document maps the current implementation to the Iteration 2 UML flows using
 - `kakuro/templates/signup.html`
 
 ### Flow 2: Log In
+
 - `kakuro/app.py` - `GET /login`, `POST /login`, `POST /logout`
 - `kakuro/services/auth_service.py` - `submit_login(...)`
 - `kakuro/models/user.py` - `get_user_by_email(...)`
@@ -21,6 +23,7 @@ This document maps the current implementation to the Iteration 2 UML flows using
 - `kakuro/templates/base.html` - logged-in vs guest nav/logout UI
 
 ### Flow 3: Start New Game
+
 - `kakuro/app.py` - `GET /new-game`, `POST /new-game`, `GET /game`
 - `kakuro/services/game_service.py` - `create_new_game(...)`, `save_game(...)`, `get_game(...)`
 - `kakuro/services/board_generator.py` - `generate_board(...)`
@@ -28,6 +31,7 @@ This document maps the current implementation to the Iteration 2 UML flows using
 - `kakuro/templates/difficulty.html`, `kakuro/templates/game.html`
 
 ### Flow 4: Play Game
+
 - `kakuro/app.py` - `GET /game`, `POST /game/enter`, `POST /game/submit`, `POST /game/pause`, `POST /game/resume`, `POST /game/save`, `GET /game/load`
 - `kakuro/services/game_service.py` - `enter_number(...)`, `submit_solution(...)`, `set_paused(...)`, `save_current_game(...)`, `load_latest_saved_game(...)`, `get_feedback(...)`
 - `kakuro/services/validation_service.py` - `validate_move(...)`, `validate_entire_board(...)`
@@ -39,6 +43,7 @@ This document maps the current implementation to the Iteration 2 UML flows using
 - `kakuro/db/schema.sql` - `saved_games` table
 
 ### Flow 4A: enterNumber
+
 - `kakuro/app.py` - `POST /game/enter`
 - `kakuro/services/game_service.py` - `enter_number(...)`
 - `kakuro/services/validation_service.py` - `validate_move(...)`
@@ -47,10 +52,12 @@ This document maps the current implementation to the Iteration 2 UML flows using
 - `kakuro/templates/game.html` - input cells
 
 ### Flow 4B: checkHint
+
 - `kakuro/models/domain.py` - `GameSession.checkHint(...)`, `PlayCell.hinted`
 - No route, service call, template action, or JS action currently wired for hint checking.
 
 ### Flow 4C: removeNumber
+
 - `kakuro/app.py` - `POST /game/enter` (empty `value` acts as removal)
 - `kakuro/services/game_service.py` - `enter_number(...)`
 - `kakuro/services/validation_service.py` - `_parse_value(...)` maps empty to `None`
@@ -59,6 +66,7 @@ This document maps the current implementation to the Iteration 2 UML flows using
 - `kakuro/templates/game.html` - editable input cells
 
 ### Flow 4D: submitBoard
+
 - `kakuro/app.py` - `POST /game/submit`
 - `kakuro/services/game_service.py` - `submit_solution(...)`
 - `kakuro/services/validation_service.py` - `validate_entire_board(...)`
@@ -67,6 +75,7 @@ This document maps the current implementation to the Iteration 2 UML flows using
 - `kakuro/static/css/styles.css` - wrong-cell visual state
 
 ### Flow 4E: pauseGame
+
 - `kakuro/app.py` - `POST /game/pause`, `POST /game/resume`
 - `kakuro/services/game_service.py` - `set_paused(...)`, `is_paused(...)`
 - `kakuro/models/domain.py` - `GameSession.pauseGame(...)`, `resumeGame(...)`
@@ -75,6 +84,7 @@ This document maps the current implementation to the Iteration 2 UML flows using
 - `kakuro/static/css/styles.css` - `.pause-target.is-paused` blur + overlay styles
 
 ### Flow 4F: saveGame
+
 - `kakuro/app.py` - `POST /game/save`
 - `kakuro/services/game_service.py` - `save_current_game(...)`
 - `kakuro/models/saved_game.py` - `upsert_saved_game(...)`
@@ -84,6 +94,7 @@ This document maps the current implementation to the Iteration 2 UML flows using
 - `kakuro/static/js/game.js` - sends elapsed time in hidden field before submit
 
 ### Flow 4G: loadGame
+
 - `kakuro/app.py` - `GET /game/load`
 - `kakuro/services/game_service.py` - `load_latest_saved_game(...)`
 - `kakuro/models/saved_game.py` - `get_latest_saved_game_for_user(...)`
@@ -96,6 +107,7 @@ This document maps the current implementation to the Iteration 2 UML flows using
 ## Flow 1 - Sign Up (Create Account)
 
 ### Step Mapping
+
 - `openSignUpPage()` -> `GET /signup` in `kakuro/app.py` -> renders `kakuro/templates/signup.html`.
 - `displaySignUpForm()` -> HTML form in `kakuro/templates/signup.html`.
 - `submitSignUp(username,email,password)` -> `POST /signup` in `kakuro/app.py` -> `submit_signup(...)` in `kakuro/services/auth_service.py`.
@@ -107,6 +119,7 @@ This document maps the current implementation to the Iteration 2 UML flows using
 - ALT branch -> route flashes error and re-renders `signup.html` with entered username/email.
 
 ### Preconditions and Postconditions from Code
+
 - Preconditions checked:
 - username/email/password must all be present.
 - email must include `@` and dot in domain suffix.
@@ -119,10 +132,12 @@ This document maps the current implementation to the Iteration 2 UML flows using
 - UI transitions to login page on success.
 
 ### Class Diagram Mapping
+
 - `User` concept is implemented as `User` dataclass in `kakuro/models/domain.py` and persisted in `users` table via `kakuro/models/user.py`.
 - No ORM entity class is used; persistence is function-based repository style with raw `sqlite3`.
 
 ### Sequence System
+
 ```mermaid
 sequenceDiagram
     actor U as User
@@ -151,6 +166,7 @@ sequenceDiagram
 ## Flow 2 - Log In
 
 ### Step Mapping
+
 - `openLoginPage()` -> `GET /login` in `kakuro/app.py` -> renders `kakuro/templates/login.html`.
 - `displayLoginForm()` -> HTML form in `kakuro/templates/login.html`.
 - `submitLogin(email,password)` -> `POST /login` in `kakuro/app.py` -> `submit_login(...)` in `kakuro/services/auth_service.py`.
@@ -161,6 +177,7 @@ sequenceDiagram
 - `logout` in Iteration 2 scope -> `POST /logout` clears session and redirects to `/`.
 
 ### Preconditions and Postconditions from Code
+
 - Preconditions checked:
 - email and password must be non-empty.
 - user must exist for provided email.
@@ -171,10 +188,12 @@ sequenceDiagram
 - game feedback and paused flags are reset on login.
 
 ### Class Diagram Mapping
+
 - `RegisteredUser` is represented in runtime by session state (`user_id` present, `is_guest=False`), not by instantiating `RegisteredUser`.
 - `GuestUser` is represented by session state (`is_guest=True`, no `user_id`), not by creating a guest DB user.
 
 ### Sequence System
+
 ```mermaid
 sequenceDiagram
     actor U as User
@@ -203,6 +222,7 @@ sequenceDiagram
 ## Flow 3 - Start New Game
 
 ### Step Mapping
+
 - `startNewGame()` entry -> `GET /new-game` in `kakuro/app.py`.
 - `displayDifficultyOptions()` -> `kakuro/templates/difficulty.html`.
 - `selectDifficulty(difficulty)` -> `POST /new-game` (route name differs from UML `select-difficulty` naming).
@@ -212,6 +232,7 @@ sequenceDiagram
 - `display game board` -> redirect `GET /game` and render `kakuro/templates/game.html`.
 
 ### Preconditions and Postconditions from Code
+
 - Preconditions checked:
 - player context required (guest or logged-in user).
 - difficulty must be one of `easy`, `medium`, `hard`.
@@ -222,11 +243,13 @@ sequenceDiagram
 - feedback and pause flags reset.
 
 ### Class Diagram Mapping
+
 - `GameSession` maps directly to `kakuro/models/domain.py::GameSession`.
 - `Board`/`Cell`/`PlayCell`/`ClueCell` map directly to dataclasses in `kakuro/models/domain.py`.
 - `DifficultyLevel` enum normalizes `GameSession.difficulty` values.
 
 ### Sequence System
+
 ```mermaid
 sequenceDiagram
     actor U as User/Guest
@@ -252,6 +275,7 @@ sequenceDiagram
 ## Flow 4 - Play Game
 
 ### Step Mapping
+
 - `display game board` -> `GET /game` in `kakuro/app.py` renders `kakuro/templates/game.html`.
 - `enter number` -> `kakuro/static/js/game.js` sends `POST /game/enter` to backend.
 - `validate move` -> `game_service.enter_number(...)` -> `validation_service.validate_move(...)`.
@@ -266,6 +290,7 @@ sequenceDiagram
 - `load game` -> `GET /game/load` from menu/nav for logged-in users.
 
 ### Preconditions and Postconditions from Code
+
 - Preconditions checked:
 - player context required for `/game`.
 - active game required for enter/pause/resume/save/submit.
@@ -279,11 +304,13 @@ sequenceDiagram
 - save/load persist and restore board state and elapsed time from SQLite `saved_games`.
 
 ### Class Diagram Mapping
+
 - Main flow uses `GameSession` aggregate with embedded `Board` and optional `Result`.
 - Persistence of save/load uses `SavedGame` data concept (dataclass + `saved_games` rows).
 - Guest/registered behavior is role logic in session flags, not polymorphic runtime objects.
 
 ### Sequence System
+
 ```mermaid
 sequenceDiagram
     actor U as User/Guest
@@ -345,6 +372,7 @@ sequenceDiagram
 ## Flow 4A - enterNumber
 
 ### Step Mapping
+
 - UML `enterNumber(row,col,value)` -> `POST /game/enter` in `kakuro/app.py`.
 - Route parses `row`/`col` to integers and reads string `value`.
 - Calls `enter_number(...)` in `kakuro/services/game_service.py`.
@@ -355,6 +383,7 @@ sequenceDiagram
 - Route stores move error text (`set_move_error(...)`) on failure and returns JSON for AJAX.
 
 ### Preconditions and Postconditions from Code
+
 - Preconditions checked:
 - active game session must exist.
 - game must not be `Finished`.
@@ -367,10 +396,12 @@ sequenceDiagram
 - invalid move restores old value and returns explicit message.
 
 ### Class Diagram Mapping
+
 - Operation is performed on `GameSession.board` (`Board` + `Cell` objects).
 - `PlayCell` objects hold mutable value state; clue cells are non-playable.
 
 ### Sequence System
+
 ```mermaid
 sequenceDiagram
     actor U as User
@@ -401,6 +432,7 @@ sequenceDiagram
 ## Flow 4B - checkHint
 
 ### Step Mapping
+
 - UML expects hint request operation.
 - Current backend has `GameSession.checkHint()` in `kakuro/models/domain.py`.
 - That method finds first empty playable cell and marks `PlayCell.hinted=True`.
@@ -408,15 +440,18 @@ sequenceDiagram
 - There is no `game_service` hint method, no hint button in `game.html`, and no hint call in `game.js`.
 
 ### Preconditions and Postconditions from Code
+
 - Diagram expects an active-session hint operation, but current code does not expose it through HTTP/UI.
 - Postcondition currently available only at domain-method level (if called manually): one empty cell gets `hinted=True` and coordinate tuple is returned.
 - No hint count tracking exists.
 
 ### Class Diagram Mapping
+
 - `checkHint` concept is partially represented in `GameSession` + `PlayCell.hinted`.
 - Use-case realization is incomplete because application/service layers do not call it.
 
 ### Sequence System
+
 ```mermaid
 sequenceDiagram
     actor U as User
@@ -434,6 +469,7 @@ sequenceDiagram
 ## Flow 4C - removeNumber
 
 ### Step Mapping
+
 - UML `removeNumber(row,col)` is not a dedicated route in current code.
 - Actual implementation uses `POST /game/enter` with `value=""` (empty string) to clear cell.
 - In `validate_move(...)`, empty input is parsed as `None`, then assigned to cell value.
@@ -441,6 +477,7 @@ sequenceDiagram
 - Domain method `GameSession.removeNumber(...)` exists but is not called by controller/service.
 
 ### Preconditions and Postconditions from Code
+
 - Preconditions checked:
 - same as enter-number preconditions (active session, not paused/finished, valid playable coordinates).
 - Postconditions achieved:
@@ -448,10 +485,12 @@ sequenceDiagram
 - board session state is saved when move is accepted.
 
 ### Class Diagram Mapping
+
 - `removeNumber` behavior is implemented operationally via `enterNumber` endpoint contract, not a separate application operation.
 - Domain-level `removeNumber(...)` exists as a conceptual match but is currently unused.
 
 ### Sequence System
+
 ```mermaid
 sequenceDiagram
     actor U as User
@@ -479,6 +518,7 @@ sequenceDiagram
 ## Flow 4D - submitBoard
 
 ### Step Mapping
+
 - `submitBoard()` -> `POST /game/submit` in `kakuro/app.py`.
 - Route calls `submit_solution()` in `kakuro/services/game_service.py`.
 - Service checks active game exists and game is not paused.
@@ -492,6 +532,7 @@ sequenceDiagram
 - `GET /game` renders wrong cells + message; template applies `wrong-cell` class.
 
 ### Preconditions and Postconditions from Code
+
 - Preconditions checked:
 - active game session required.
 - submit blocked while paused.
@@ -502,11 +543,13 @@ sequenceDiagram
 - feedback (`wrong_cells`, `game_message`) stored in session for rendering.
 
 ### Class Diagram Mapping
+
 - `submitBoard` maps to `GameSession.submitBoard()` plus validation service.
 - `Result` object maps UML result/win artifact when solved.
 - Wrong-cell highlighting is UI projection of validation output, not separate class.
 
 ### Sequence System
+
 ```mermaid
 sequenceDiagram
     actor U as User
@@ -535,6 +578,7 @@ sequenceDiagram
 ## Flow 4E - pauseGame
 
 ### Step Mapping
+
 - `pauseGame()` -> pause button in `kakuro/templates/game.html` (`#pauseGameBtn`).
 - JS handler in `kakuro/static/js/game.js` first syncs pending inputs, then calls `POST /game/pause`.
 - Route `pause_game_route` in `kakuro/app.py` calls `set_paused(True)`.
@@ -548,6 +592,7 @@ sequenceDiagram
 - Backend also blocks move/submit while paused.
 
 ### Preconditions and Postconditions from Code
+
 - Preconditions checked:
 - active game session must exist for pause/resume endpoint success.
 - pause only sets `isPaused` if game is not completed (`GameSession.pauseGame`).
@@ -557,10 +602,12 @@ sequenceDiagram
 - timer is JS-side and is stopped/started locally, not continuously server-tracked.
 
 ### Class Diagram Mapping
+
 - `pauseGame` operation maps directly to `GameSession.pauseGame()` and `resumeGame()`.
 - No separate timer class exists; elapsed time is plain `GameSession.elapsedTime` integer plus JS runtime counter.
 
 ### Sequence System
+
 ```mermaid
 sequenceDiagram
     actor U as User
@@ -591,6 +638,7 @@ sequenceDiagram
 ## Flow 4F - saveGame
 
 ### Step Mapping
+
 - `saveGame()` UI trigger -> pause overlay form `#saveGameForm` in `kakuro/templates/game.html`.
 - JS updates hidden `elapsed_time` value before submit (`renderTimer()` in `game.js`).
 - Form posts `POST /game/save` to `kakuro/app.py`.
@@ -604,6 +652,7 @@ sequenceDiagram
 - Success redirects to `/menu`; failure redirects back to `/game`.
 
 ### Preconditions and Postconditions from Code
+
 - Preconditions checked:
 - active game session must exist.
 - user must be registered (guest blocked).
@@ -614,6 +663,7 @@ sequenceDiagram
 - flash message reports success/failure.
 
 ### Class Diagram Mapping
+
 - `SavedGame` concept maps to:
 - `saved_games` table row,
 - `SavedGame` dataclass in `kakuro/models/domain.py`,
@@ -621,6 +671,7 @@ sequenceDiagram
 - `RegisteredUser` save ability is enforced by session `user_id` check in route.
 
 ### Sequence System
+
 ```mermaid
 sequenceDiagram
     actor U as Registered User
@@ -646,6 +697,7 @@ sequenceDiagram
 ## Flow 4G - loadGame
 
 ### Step Mapping
+
 - `loadGame()` trigger -> load links in `main_menu.html` and `base.html` (`GET /game/load`).
 - Route in `kakuro/app.py` checks player context and registered user.
 - Calls `load_latest_saved_game(db_path, user_id)` in `kakuro/services/game_service.py`.
@@ -656,6 +708,7 @@ sequenceDiagram
 - `game.html` receives restored board and elapsed time; `game.js` starts timer from restored seconds.
 
 ### Preconditions and Postconditions from Code
+
 - Preconditions checked:
 - player context required.
 - user must be registered.
@@ -667,10 +720,12 @@ sequenceDiagram
 - pause flag and old feedback are reset.
 
 ### Class Diagram Mapping
+
 - `SavedGame -> GameSession` reconstruction is explicit in `SavedGame.restore()`.
 - `Board.from_dict(...)` + `Cell.from_dict(...)` rebuild object graph for gameplay continuation.
 
 ### Sequence System
+
 ```mermaid
 sequenceDiagram
     actor U as Registered User

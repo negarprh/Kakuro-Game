@@ -25,7 +25,7 @@ def submit_signup(
     email: str,
     password: str,
 ) -> tuple[bool, str]:
-    # Diagram mapping: submitSignUp(username, email, password).
+    # Flow 1: submitSignUp(username, email, password).
     username = (username or "").strip()
     email = (email or "").strip().lower()
     password = password or ""
@@ -54,7 +54,7 @@ def submit_signup(
 
 
 def submit_login(db_path: Path, email: str, password: str):
-    # Diagram mapping: submitLogin(email, password).
+    # Flow 2: submitLogin(email, password).
     email = (email or "").strip().lower()
     password = password or ""
 

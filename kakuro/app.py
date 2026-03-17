@@ -96,12 +96,12 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.get("/signup")
     def open_signup_page():
-        # Diagram mapping: System Operation openSignUpPage() / SSD 1.1 displaySignUpForm().
+        # Flow 1 (Use Case + SSD): openSignUpPage() / displaySignUpForm().
         return render_template("signup.html")
 
     @app.post("/signup")
     def submit_signup_form():
-        # Diagram mapping: System Operation submitSignUp(username, email, password).
+        # Flow 1 (System Operation): submitSignUp(username, email, password).
         ok, message = submit_signup(
             db_path,
             request.form.get("username", ""),
@@ -124,12 +124,12 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.get("/login")
     def open_login_page():
-        # Diagram mapping: System Operation openLoginPage() / SSD 1.1 displayLoginForm().
+        # Flow 2 (Use Case + SSD): openLoginPage() / displayLoginForm().
         return render_template("login.html")
 
     @app.post("/login")
     def submit_login_form():
-        # Diagram mapping: System Operation submitLogin(email, password).
+        # Flow 2 (System Operation): submitLogin(email, password).
         email = request.form.get("email", "")
         password = request.form.get("password", "")
 
@@ -152,7 +152,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.get("/new-game")
     def open_new_game_page():
-        # Diagram mapping: System Operation startNewGame() -> displayDifficultyOptions().
+        # Flow 3 (Use Case + SSD): startNewGame() -> displayDifficultyOptions().
         guard = require_player_context()
         if guard:
             return guard
@@ -160,7 +160,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.post("/new-game")
     def start_new_game():
-        # Diagram mapping: System Operation selectDifficulty(difficulty).
+        # Flow 3 (System Operation): selectDifficulty(difficulty).
         guard = require_player_context()
         if guard:
             return guard
@@ -181,7 +181,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.get("/game")
     def game_screen():
-        # Diagram mapping: SSD 1 displayGameBoard(board).
+        # Flow 4 (Main Play Game): displayGameBoard(board).
         guard = require_player_context()
         if guard:
             return guard
@@ -208,6 +208,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.post("/game/pause")
     def pause_game_route():
+        # Flow 4E: pauseGame (Operation Contract).
         game_session = get_game()
         if game_session is None:
             return _move_response(False, "No active game session.", "", request)
@@ -217,6 +218,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.post("/game/resume")
     def resume_game_route():
+        # Flow 4E: resumeGame (Operation Contract).
         game_session = get_game()
         if game_session is None:
             return _move_response(False, "No active game session.", "", request)
@@ -226,6 +228,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.post("/game/save")
     def save_game_route():
+        # Flow 4F: saveGame (Operation Contract).
         game_session = get_game()
         if game_session is None:
             flash("No active game session.", "danger")
@@ -247,6 +250,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.get("/game/load")
     def load_game_route():
+        # Flow 4G: loadGame (Operation Contract).
         guard = require_player_context()
         if guard:
             return guard
@@ -262,7 +266,8 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.post("/game/enter")
     def enter_number_route():
-        # Diagram mapping: System Operation enterNumber(row, col, value).
+        # Flow 4A: enterNumber (Operation Contract) for row/col/value input.
+        # Flow 4C: removeNumber is handled here when value is empty.
         game_session = get_game()
         if game_session is None:
             return _move_response(False, "No active game session.", "", request)
@@ -286,7 +291,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.post("/game/submit")
     def submit_solution_route():
-        # Diagram mapping: System Operation submitSolution().
+        # Flow 4D: submitBoard (Operation Contract), implemented as submitSolution().
         result = submit_solution()
         if not result.get("ok"):
             # ALT path: submit attempted without active session.

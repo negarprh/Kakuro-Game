@@ -332,26 +332,32 @@ class GameSession:
         self.result = None
 
     def enterNumber(self, row: int, col: int, value: Optional[int]) -> tuple[bool, str]:
+        # Flow 4A enterNumber: domain operation contract.
         if self.isPaused:
             return False, "Game is paused. Resume to continue."
         return self.board.validateEntry(row, col, value)
 
     def removeNumber(self, row: int, col: int) -> tuple[bool, str]:
+        # Flow 4C removeNumber: domain operation contract (not exposed as a dedicated route).
         if self.isPaused:
             return False, "Game is paused. Resume to continue."
         return self.board.validateEntry(row, col, None)
 
     def pauseGame(self) -> None:
+        # Flow 4E pauseGame: domain state transition.
         if not self.isCompleted:
             self.isPaused = True
 
     def resumeGame(self) -> None:
+        # Flow 4E resumeGame: domain state transition.
         self.isPaused = False
 
     def submitBoard(self) -> None:
+        # Flow 4D submitBoard: domain state transition.
         self.isSubmitted = True
 
     def checkHint(self) -> Optional[tuple[int, int]]:
+        # Flow 4B checkHint: domain operation (currently not wired through route/service/UI).
         for cell in self.board.cells:
             if cell.isPlayable and cell.value is None:
                 if isinstance(cell, PlayCell):

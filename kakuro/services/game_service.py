@@ -23,7 +23,7 @@ PAUSED_KEY = "game_paused"
 
 
 def create_new_game(difficulty: str, user_id: int | None = None) -> GameSession:
-    # Diagram mapping: selectDifficulty(difficulty) creates a fresh board/session.
+    # Flow 3: selectDifficulty(difficulty) -> create GameSession + Board.
     board = generate_board(difficulty)
     return GameSession(
         sessionId=f"gs-{uuid.uuid4().hex[:12]}",
@@ -65,6 +65,7 @@ def set_move_error(message: str) -> None:
 
 
 def set_paused(paused: bool) -> None:
+    # Flow 4E: pauseGame/resumeGame server-side state transition.
     game_session = get_game()
     if game_session is not None:
         if paused:
@@ -90,7 +91,8 @@ def get_feedback() -> dict:
 
 
 def enter_number(row: int, col: int, raw_value: str) -> dict:
-    # Diagram mapping: enterNumber(row, col, value).
+    # Flow 4A: enterNumber operation.
+    # Flow 4C: removeNumber behavior when raw_value is empty.
     game_session = get_game()
     if game_session is None:
         return {"ok": False, "message": "No active game session."}
@@ -113,7 +115,7 @@ def enter_number(row: int, col: int, raw_value: str) -> dict:
 
 
 def submit_solution() -> dict:
-    # Diagram mapping: submitSolution() with win/error branches.
+    # Flow 4D: submitBoard operation (implemented as submitSolution route/service).
     game_session = get_game()
     if game_session is None:
         return {"ok": False, "message": "No active game session."}
@@ -149,6 +151,7 @@ def submit_solution() -> dict:
 
 
 def save_current_game(db_path: Path, user_id: int, elapsed_time: int) -> tuple[bool, str]:
+    # Flow 4F: saveGame persistence for registered users.
     game_session = get_game()
     if game_session is None:
         return False, "No active game session."
@@ -167,6 +170,7 @@ def save_current_game(db_path: Path, user_id: int, elapsed_time: int) -> tuple[b
 
 
 def load_latest_saved_game(db_path: Path, user_id: int) -> tuple[bool, str]:
+    # Flow 4G: loadGame restores latest persisted game state.
     saved = get_latest_saved_game_for_user(user_id, db_path)
     if saved is None:
         return False, "No saved game found."
