@@ -1,11 +1,53 @@
 {% extends "base.html" %}
 {% block title %}Main Menu | Kakuro{% endblock %}
 {% block content %}
-<section class="card card-centered menu-grid">
-    <h2>Main Menu</h2>
-    <a class="btn large" href="{{ url_for('open_new_game_page') }}">Start New Game</a>
-    {% if is_logged_in %}
-        <a class="btn outline large" href="{{ url_for('load_game_route') }}">Load Saved Game</a>
-    {% endif %}
+<section class="menu-layout">
+    <div class="card menu-actions">
+        <h2>Main Menu</h2>
+        <p class="sub">Pick your next move. Finish games fast on harder difficulties to climb the leaderboard.</p>
+        <a class="btn large" href="{{ url_for('open_new_game_page') }}">Start New Game</a>
+        {% if is_logged_in %}
+            <a class="btn outline large" href="{{ url_for('load_game_route') }}">Load Saved Game</a>
+        {% endif %}
+        {% if is_guest %}
+            <p class="sub small">Guest mode can view leaderboard rankings, but guest runs are not recorded.</p>
+        {% endif %}
+    </div>
+
+    <aside class="card leaderboard-card">
+        <div class="leaderboard-head">
+            <h3>Leaderboard</h3>
+            <p class="sub small">Score = difficulty points + speed bonus</p>
+        </div>
+
+        {% if leaderboard_entries %}
+            <div class="leaderboard-table-wrap">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Player</th>
+                            <th>Difficulty</th>
+                            <th>Time</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in leaderboard_entries %}
+                            <tr>
+                                <td class="rank-col">{{ entry.rank }}</td>
+                                <td>{{ entry.username }}</td>
+                                <td><span class="difficulty-pill difficulty-{{ entry.difficulty }}">{{ entry.difficulty|capitalize }}</span></td>
+                                <td>{{ "%02d:%02d"|format((entry.elapsedTime // 60), (entry.elapsedTime % 60)) }}</td>
+                                <td class="score-col">{{ entry.score }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="sub">No scored runs yet. Finish a registered-user game to create the first record.</p>
+        {% endif %}
+    </aside>
 </section>
 {% endblock %}

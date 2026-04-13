@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const saveGameForm = document.querySelector("#saveGameForm");
     const elapsedDisplay = document.querySelector("#elapsed-time");
     const elapsedInput = document.querySelector("#elapsedTimeInput");
+    const submitElapsedInput = document.querySelector("#submitElapsedTimeInput");
     const pauseOverlay = document.querySelector("#pauseOverlay");
     const pauseTarget = document.querySelector("#pauseTarget");
     const isFinished = gameCard.dataset.gameFinished === "1";
@@ -33,6 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (elapsedInput) {
             elapsedInput.value = String(elapsedSeconds);
+        }
+        if (submitElapsedInput) {
+            submitElapsedInput.value = String(elapsedSeconds);
         }
     };
 

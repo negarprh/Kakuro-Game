@@ -8,8 +8,10 @@ Flask + HTML/CSS + SQLite implementation aligned to the Iteration-1 UML/use-case
 - Play Game (enter number -> validate move -> submit/check -> wrong-cell highlight -> result)
 - Pause Game (freeze board, blur background, stop timer, resume)
 - Save Game / Load Game (registered users only)
+- Leaderboard (registered-user wins are scored by difficulty + completion time)
 - Guest + Registered users can play
-- SQLite is used for authentication and saved game persistence (`users`, `saved_games`)
+- Guests can view leaderboard but are not ranked
+- SQLite is used for authentication and game persistence (`users`, `saved_games`, `leaderboard_entries`)
 
 ## Tech Stack
 
@@ -31,12 +33,14 @@ kakuro/
     __init__.py
     user.py
     domain.py
+    leaderboard.py
   /services
     __init__.py
     auth_service.py
     game_service.py
     board_generator.py
     validation_service.py
+    leaderboard_service.py
   /db
     schema.sql
     kakuro.sqlite   # created automatically on first run
@@ -108,6 +112,7 @@ What we test:
 - `tests/test_auth.py`: sign-up uniqueness checks, login credential checks, sign-up redirect behavior.
 - `tests/test_validation.py`: move validation rules (1-9 and duplicate protection) and submit-level board validation.
 - `tests/test_game_flow.py`: submit flow state transitions, pause lock behavior, save/load behavior.
+- `tests/test_leaderboard.py`: score recording for registered wins, guest exclusion, leaderboard visibility in menu.
 
 Run all tests:
 
@@ -129,6 +134,7 @@ Run a specific test file (both platforms):
 python -m pytest tests/test_auth.py
 python -m pytest tests/test_validation.py
 python -m pytest tests/test_game_flow.py
+python -m pytest tests/test_leaderboard.py
 ```
 
 ## Notes

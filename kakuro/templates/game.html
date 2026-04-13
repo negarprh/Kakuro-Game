@@ -73,6 +73,7 @@
         <div class="actions-row">
             {% if game_session.status != 'Finished' %}
                 <form method="post" action="{{ url_for('submit_solution_route') }}" class="submit-solution-form">
+                    <input type="hidden" name="elapsed_time" id="submitElapsedTimeInput" value="{{ game_session.elapsedTime or 0 }}">
                     <button class="btn" type="submit">Check / Submit</button>
                 </form>
                 <button class="btn outline" type="button" id="pauseGameBtn">Pause Game</button>

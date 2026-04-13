@@ -1,13 +1,43 @@
 {% extends "base.html" %}
 {% block title %}Choose Difficulty | Kakuro{% endblock %}
 {% block content %}
-<section class="card card-centered menu-grid">
-    <h2>Select Difficulty</h2>
-    <form method="post" action="{{ url_for('start_new_game') }}" class="form-grid">
-        <label class="difficulty-option"><input type="radio" name="difficulty" value="easy" checked> Easy (5x5)</label>
-        <label class="difficulty-option"><input type="radio" name="difficulty" value="medium"> Medium (8x9)</label>
-        <label class="difficulty-option"><input type="radio" name="difficulty" value="hard"> Hard (13x13)</label>
-        <button class="btn" type="submit">Launch Game</button>
-    </form>
+<section class="difficulty-layout">
+    <div class="card difficulty-picker">
+        <h2>Select Difficulty</h2>
+        <p class="sub">Harder boards give higher base score when solved.</p>
+        <form method="post" action="{{ url_for('start_new_game') }}" class="form-grid">
+            <label class="difficulty-option"><input type="radio" name="difficulty" value="easy" checked> Easy (5x5)</label>
+            <label class="difficulty-option"><input type="radio" name="difficulty" value="medium"> Medium (8x9)</label>
+            <label class="difficulty-option"><input type="radio" name="difficulty" value="hard"> Hard (13x13)</label>
+            <button class="btn" type="submit">Launch Game</button>
+        </form>
+    </div>
+
+    <aside class="card tutorial-panel">
+        <h3>Quick Tutorial</h3>
+        <p class="sub small">Fill each white run so digits 1-9 do not repeat in that run and the total matches the clue.</p>
+
+        <ol class="tutorial-steps">
+            <li>Pick an empty white cell and type a digit 1-9.</li>
+            <li>Use clue sums to satisfy both across and down runs.</li>
+            <li>Duplicate digits in a run are rejected instantly.</li>
+            <li>Use <strong>Check / Submit</strong> to validate the full board.</li>
+        </ol>
+
+        <div class="tutorial-visual">
+            <div class="legend-item">
+                <span class="legend-swatch legend-clue"></span>
+                <span>Clue cell (contains target sums)</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-swatch legend-play"></span>
+                <span>Playable cell (enter 1-9)</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-swatch legend-wrong"></span>
+                <span>Wrong cell highlight after submit</span>
+            </div>
+        </div>
+    </aside>
 </section>
 {% endblock %}

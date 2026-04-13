@@ -27,6 +27,7 @@ from .services.game_service import (
     set_move_error,
     submit_solution,
 )
+from .services.leaderboard_service import get_leaderboard, record_completed_game
 
 
 def create_app(test_config: dict | None = None) -> Flask:
@@ -85,7 +86,11 @@ def create_app(test_config: dict | None = None) -> Flask:
         guard = require_player_context()
         if guard:
             return guard
-        return render_template("main_menu.html")
+        leaderboard_entries = get_leaderboard(db_path, limit=10)
+        return render_template(
+            "main_menu.html",
+            leaderboard_entries=leaderboard_entries,
+        )
 
     @app.post("/logout")
     def logout():
@@ -292,6 +297,16 @@ def create_app(test_config: dict | None = None) -> Flask:
     @app.post("/game/submit")
     def submit_solution_route():
         # Flow 4D: submitBoard (Operation Contract), implemented as submitSolution().
+        pre_submit_game = get_game()
+        was_finished_before_submit = bool(pre_submit_game and pre_submit_game.status == "Finished")
+        if pre_submit_game is not None:
+            try:
+                elapsed_time = int(request.form.get("elapsed_time", pre_submit_game.elapsedTime))
+            except ValueError:
+                elapsed_time = pre_submit_game.elapsedTime
+            pre_submit_game.elapsedTime = max(0, elapsed_time)
+            save_game(pre_submit_game)
+
         result = submit_solution()
         if not result.get("ok"):
             # ALT path: submit attempted without active session.
@@ -300,7 +315,12 @@ def create_app(test_config: dict | None = None) -> Flask:
 
         if result["isSolved"]:
             # Success path: solved board.
+            if not was_finished_before_submit:
+                score = record_completed_game(db_path, session.get("user_id"), get_game())
+                if score is not None:
+                    flash(f"Score recorded: {score} points.", "info")
             flash("Win! Puzzle solved correctly.", "success")
+            return redirect(url_for("menu"))
         else:
             # ALT path: not solved/incorrect with wrong-cell highlight feedback.
             flash("Not solved / incorrect. Wrong cells are highlighted.", "danger")
