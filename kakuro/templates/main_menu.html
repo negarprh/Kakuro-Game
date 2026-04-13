@@ -3,21 +3,32 @@
 {% block content %}
 <section class="menu-layout">
     <div class="card menu-actions">
+        <p class="eyebrow">Menu</p>
         <h2>Main Menu</h2>
-        <p class="sub">Pick your next move. Finish games fast on harder difficulties to climb the leaderboard.</p>
+        <p class="sub">Start a new game or continue from a saved game.</p>
+
+        {% if is_logged_in %}
+            <span class="mode-badge">Registered Mode</span>
+        {% elif is_guest %}
+            <span class="mode-badge">Guest Mode</span>
+        {% endif %}
+
         <a class="btn large" href="{{ url_for('open_new_game_page') }}">Start New Game</a>
+
         {% if is_logged_in %}
             <a class="btn outline large" href="{{ url_for('load_game_route') }}">Load Saved Game</a>
         {% endif %}
+
         {% if is_guest %}
-            <p class="sub small">Guest mode can view leaderboard rankings, but guest runs are not recorded.</p>
+            <p class="sub small">Guest users can play and view rankings, but scores are not recorded and games cannot be saved.</p>
         {% endif %}
     </div>
 
     <aside class="card leaderboard-card">
         <div class="leaderboard-head">
+            <p class="eyebrow">Leaderboard</p>
             <h3>Leaderboard</h3>
-            <p class="sub small">Score = difficulty points + speed bonus</p>
+            <p class="sub small">Score uses difficulty points and a time bonus.</p>
         </div>
 
         {% if leaderboard_entries %}
@@ -46,7 +57,7 @@
                 </table>
             </div>
         {% else %}
-            <p class="sub">No scored runs yet. Finish a registered-user game to create the first record.</p>
+            <p class="sub">No scored runs yet. Finish a registered user game to create the first record.</p>
         {% endif %}
     </aside>
 </section>

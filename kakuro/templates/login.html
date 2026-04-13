@@ -1,17 +1,37 @@
 {% extends "base.html" %}
 {% block title %}Login | Kakuro{% endblock %}
 {% block content %}
-<section class="card card-centered form-card">
-    <h2>Log In</h2>
-    <form method="post" class="form-grid">
-        <label>Email
-            <input type="email" name="email" required value="{{ email or '' }}">
-        </label>
-        <label>Password
-            <input type="password" name="password" required>
-        </label>
-        <button class="btn" type="submit">Login</button>
-    </form>
-    <p class="sub">No account yet? <a href="{{ url_for('open_signup_page') }}">Sign up</a>.</p>
+<section class="auth-layout">
+    <article class="card auth-info">
+        <p class="eyebrow">Login</p>
+        <h2>Sign in to your account</h2>
+        <p class="sub">Registered users can save games and load saved progress.</p>
+        <ul>
+            <li>Save your current game.</li>
+            <li>Load your latest saved game.</li>
+            <li>Record scores on the leaderboard.</li>
+        </ul>
+    </article>
+
+    <article class="card form-card">
+        <h2>Log In</h2>
+        <p class="sub small">Enter your email and password.</p>
+
+        <form method="post" class="form-grid">
+            <label class="field">
+                <span class="field-label">Email</span>
+                <input type="email" name="email" required value="{{ email or '' }}">
+            </label>
+
+            <label class="field">
+                <span class="field-label">Password</span>
+                <input type="password" name="password" required>
+            </label>
+
+            <button class="btn" type="submit">Log In</button>
+        </form>
+
+        <p class="sub">No account yet? <a href="{{ url_for('open_signup_page') }}">Sign up</a>.</p>
+    </article>
 </section>
 {% endblock %}

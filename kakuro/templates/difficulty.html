@@ -3,39 +3,66 @@
 {% block content %}
 <section class="difficulty-layout">
     <div class="card difficulty-picker">
+        <p class="eyebrow">New Game</p>
         <h2>Select Difficulty</h2>
-        <p class="sub">Harder boards give higher base score when solved.</p>
+        <p class="sub">Choose a board size and start the game.</p>
+
         <form method="post" action="{{ url_for('start_new_game') }}" class="form-grid">
-            <label class="difficulty-option"><input type="radio" name="difficulty" value="easy" checked> Easy (5x5)</label>
-            <label class="difficulty-option"><input type="radio" name="difficulty" value="medium"> Medium (8x9)</label>
-            <label class="difficulty-option"><input type="radio" name="difficulty" value="hard"> Hard (13x13)</label>
+            <label class="difficulty-option">
+                <input type="radio" name="difficulty" value="easy" checked>
+                <span>
+                    <strong>Easy</strong>
+                    <span>Good for learning the rules.</span>
+                </span>
+                <span class="board-size">5 x 5</span>
+            </label>
+
+            <label class="difficulty-option">
+                <input type="radio" name="difficulty" value="medium">
+                <span>
+                    <strong>Medium</strong>
+                    <span>More clues and longer runs.</span>
+                </span>
+                <span class="board-size">8 x 9</span>
+            </label>
+
+            <label class="difficulty-option">
+                <input type="radio" name="difficulty" value="hard">
+                <span>
+                    <strong>Hard</strong>
+                    <span>Largest board and hardest challenge.</span>
+                </span>
+                <span class="board-size">13 x 13</span>
+            </label>
+
             <button class="btn" type="submit">Launch Game</button>
         </form>
     </div>
 
     <aside class="card tutorial-panel">
-        <h3>Quick Tutorial</h3>
-        <p class="sub small">Fill each white run so digits 1-9 do not repeat in that run and the total matches the clue.</p>
+        <p class="eyebrow">Tutorial</p>
+        <h3>Quick Rules</h3>
+        <p class="sub small">Each white run must match its clue sum with digits 1 to 9 and no duplicates.</p>
 
         <ol class="tutorial-steps">
-            <li>Pick an empty white cell and type a digit 1-9.</li>
-            <li>Use clue sums to satisfy both across and down runs.</li>
-            <li>Duplicate digits in a run are rejected instantly.</li>
+            <li>Pick a white cell and enter a digit from 1 to 9.</li>
+            <li>Use both across and down clues to satisfy totals.</li>
+            <li>Digits cannot repeat in the same run.</li>
             <li>Use <strong>Check / Submit</strong> to validate the full board.</li>
         </ol>
 
         <div class="tutorial-visual">
             <div class="legend-item">
                 <span class="legend-swatch legend-clue"></span>
-                <span>Clue cell (contains target sums)</span>
+                <span>Clue cell containing target sums</span>
             </div>
             <div class="legend-item">
                 <span class="legend-swatch legend-play"></span>
-                <span>Playable cell (enter 1-9)</span>
+                <span>Playable cell where you enter digits</span>
             </div>
             <div class="legend-item">
                 <span class="legend-swatch legend-wrong"></span>
-                <span>Wrong cell highlight after submit</span>
+                <span>Incorrect cell highlight after submit</span>
             </div>
         </div>
     </aside>

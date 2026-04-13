@@ -1,20 +1,42 @@
 {% extends "base.html" %}
 {% block title %}Sign Up | Kakuro{% endblock %}
 {% block content %}
-<section class="card card-centered form-card">
-    <h2>Create Account</h2>
-    <form method="post" class="form-grid">
-        <label>Username
-            <input type="text" name="username" required value="{{ username or '' }}">
-        </label>
-        <label>Email
-            <input type="email" name="email" required value="{{ email or '' }}">
-        </label>
-        <label>Password
-            <input type="password" name="password" required>
-        </label>
-        <button class="btn" type="submit">Create Account</button>
-    </form>
-    <p class="sub">Already have an account? <a href="{{ url_for('open_login_page') }}">Log in</a>.</p>
+<section class="auth-layout">
+    <article class="card auth-info">
+        <p class="eyebrow">Sign Up</p>
+        <h2>Create an account</h2>
+        <p class="sub">Registered accounts can save games and record leaderboard scores.</p>
+        <ul>
+            <li>Save your progress.</li>
+            <li>Load your latest saved game.</li>
+            <li>Record finished game scores.</li>
+        </ul>
+    </article>
+
+    <article class="card form-card">
+        <h2>Create Account</h2>
+        <p class="sub small">Enter a username, email, and password.</p>
+
+        <form method="post" class="form-grid">
+            <label class="field">
+                <span class="field-label">Username</span>
+                <input type="text" name="username" required value="{{ username or '' }}">
+            </label>
+
+            <label class="field">
+                <span class="field-label">Email</span>
+                <input type="email" name="email" required value="{{ email or '' }}">
+            </label>
+
+            <label class="field">
+                <span class="field-label">Password</span>
+                <input type="password" name="password" required>
+            </label>
+
+            <button class="btn" type="submit">Create Account</button>
+        </form>
+
+        <p class="sub">Already have an account? <a href="{{ url_for('open_login_page') }}">Log in</a>.</p>
+    </article>
 </section>
 {% endblock %}

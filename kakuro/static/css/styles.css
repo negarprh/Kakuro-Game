@@ -1,4 +1,6 @@
 :root {
+  --font-sans: "Lato", "Segoe UI", "Trebuchet MS", sans-serif;
+  --font-display: "Merriweather", Georgia, "Times New Roman", serif;
   --space-8: 8px;
   --space-12: 12px;
   --space-16: 16px;
@@ -11,8 +13,8 @@
   --border-strong: #8c99a6;
   --text-primary: #111827;
   --text-muted: #4b5563;
-  --accent: #1f6feb;
-  --accent-hover: #1b5fcc;
+  --accent: #2f6b59;
+  --accent-hover: #245244;
   --danger: #b42318;
   --danger-soft: #fdecea;
   --success: #027a48;
@@ -23,7 +25,7 @@
   --board-dark-edge: #39424c;
   --board-grid: #7a8793;
   --playable-bg: #fbfdff;
-  --focus-ring: #0b63ce;
+  --focus-ring: #2f6b59;
 }
 
 * {
@@ -35,13 +37,7 @@ body {
   min-height: 100vh;
   background: var(--surface-bg);
   color: var(--text-primary);
-  font-family:
-    system-ui,
-    -apple-system,
-    Segoe UI,
-    Roboto,
-    Arial,
-    sans-serif;
+  font-family: var(--font-sans);
   line-height: 1.45;
 }
 
@@ -52,6 +48,7 @@ a {
 h1,
 h2 {
   margin: 0;
+  font-family: var(--font-display);
   color: var(--text-primary);
   letter-spacing: -0.01em;
 }
@@ -82,10 +79,30 @@ h2 {
 }
 
 .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: var(--text-primary);
   text-decoration: none;
   font-size: 1.05rem;
   font-weight: 700;
+}
+
+.brand-mark {
+  inline-size: 1.7rem;
+  block-size: 1.7rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.brand-text {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 .topnav {
@@ -249,9 +266,7 @@ input[type="password"]:focus {
 }
 
 .leaderboard-card {
-  background:
-    linear-gradient(135deg, rgba(31, 111, 235, 0.06), rgba(2, 122, 72, 0.06)),
-    #ffffff;
+  background: #ffffff;
 }
 
 .leaderboard-head {
@@ -341,9 +356,7 @@ input[type="password"]:focus {
 }
 
 .tutorial-panel {
-  background:
-    radial-gradient(circle at top right, rgba(31, 111, 235, 0.12), transparent 45%),
-    #ffffff;
+  background: #ffffff;
 }
 
 .tutorial-panel h3 {
@@ -418,6 +431,8 @@ input[type="password"]:focus {
 .btn:hover {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
+  color: #ffffff;
+  text-decoration: none;
 }
 
 .btn.outline {
@@ -429,6 +444,8 @@ input[type="password"]:focus {
 .btn.outline:hover {
   background: var(--surface-muted);
   border-color: #6f7e8d;
+  color: var(--text-primary);
+  text-decoration: none;
 }
 
 .btn.small {
@@ -449,6 +466,8 @@ input[type="password"]:focus {
 .btn.danger:hover {
   background: #a62f27;
   border-color: #a62f27;
+  color: #ffffff;
+  text-decoration: none;
 }
 
 .flash-list {
@@ -560,6 +579,10 @@ input[type="password"]:focus {
   border: 1px solid var(--border);
   padding: 10px 12px;
   font-weight: 600;
+}
+
+.inline-msg:empty {
+  display: none;
 }
 
 .inline-msg.error {
